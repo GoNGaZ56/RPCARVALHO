@@ -307,3 +307,251 @@ body[data-mode].dark-theme{background:#06140b}
         padding:0 8px;
     }
 }
+
+/* ========================================================================== */
+/* V22 - Tema claro no simulador + colisão livre + hero construção             */
+/* ========================================================================== */
+.construction-hero-window .construction-scene-wrap{
+    display:grid;
+    place-items:center;
+    background:linear-gradient(145deg,#f4fff7,#dcfce7);
+}
+.construction-scene-img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+body:not(.dark-theme) .brand-mark,
+body:not(.dark-theme) .logo-icon{
+    background:#dcfce7;
+    border:1px solid rgba(34,197,94,.28);
+}
+body:not(.dark-theme) .logo-icon img,
+body:not(.dark-theme) .brand-mark img{
+    filter:none;
+}
+
+body[data-mode]:not(.dark-theme){
+    background:#f4fff7;
+    color:#0f172a;
+}
+body[data-mode]:not(.dark-theme) .app-header{
+    background:rgba(255,255,255,.92);
+    border-bottom:1px solid rgba(15,23,42,.08);
+    box-shadow:0 10px 30px rgba(15,23,42,.06);
+}
+body[data-mode]:not(.dark-theme) .logo-container,
+body[data-mode]:not(.dark-theme) .logo-link{
+    color:#0f172a;
+}
+body[data-mode]:not(.dark-theme) .badge{
+    background:#dcfce7;
+    color:#166534;
+    border-color:rgba(34,197,94,.35);
+}
+body[data-mode]:not(.dark-theme) .btn-outline-primary,
+body[data-mode]:not(.dark-theme) .mobile-panel-toggle{
+    background:#ffffff;
+    border-color:#dbe7df;
+    color:#166534;
+}
+body[data-mode]:not(.dark-theme) .btn-outline-danger{
+    background:#fff;
+    border-color:#fecaca;
+    color:#b91c1c;
+}
+body[data-mode]:not(.dark-theme) .control-panel{
+    background:#f8fff9;
+    border-right:1px solid #dbe7df;
+    box-shadow:16px 0 44px rgba(15,23,42,.08);
+}
+body[data-mode]:not(.dark-theme) .scrollable-y{scrollbar-color:#22c55e #e7f7ed;}
+body[data-mode]:not(.dark-theme) .scrollable-y::-webkit-scrollbar-track{background:#e7f7ed;}
+body[data-mode]:not(.dark-theme) .scrollable-y::-webkit-scrollbar-thumb{background:#22c55e;border-color:#e7f7ed;}
+body[data-mode]:not(.dark-theme) .panel-title-box,
+body[data-mode]:not(.dark-theme) .panel-section{
+    background:#ffffff;
+    border-color:#dbe7df;
+    box-shadow:0 10px 26px rgba(15,23,42,.05);
+}
+body[data-mode]:not(.dark-theme) .panel-title-box p,
+body[data-mode]:not(.dark-theme) .small-note,
+body[data-mode]:not(.dark-theme) .assist-box span{
+    color:#64748b;
+}
+body[data-mode]:not(.dark-theme) .section-header h3{
+    color:#166534;
+}
+body[data-mode]:not(.dark-theme) label{
+    color:#52715d;
+}
+body[data-mode]:not(.dark-theme) .custom-select,
+body[data-mode]:not(.dark-theme) .custom-input{
+    background:#ffffff;
+    border-color:#dbe7df;
+    color:#0f172a;
+}
+body[data-mode]:not(.dark-theme) .toggle-label,
+body[data-mode]:not(.dark-theme) .summary-pill{
+    color:#0f172a;
+}
+body[data-mode]:not(.dark-theme) .summary-pill,
+body[data-mode]:not(.dark-theme) .assist-box,
+body[data-mode]:not(.dark-theme) .note-box{
+    background:#f0fdf4;
+    border-color:#bbf7d0;
+}
+body[data-mode]:not(.dark-theme) .summary-pill span{
+    color:#64748b;
+}
+body[data-mode]:not(.dark-theme) .viewport-container{
+    background:#ecfff3;
+}
+body[data-mode]:not(.dark-theme) .hud-card,
+body[data-mode]:not(.dark-theme) .side-tool-rail,
+body[data-mode]:not(.dark-theme) .side-tools .canvas-tool-palette,
+body[data-mode]:not(.dark-theme) .help-control-btn{
+    background:rgba(255,255,255,.9);
+    border-color:rgba(22,101,52,.18);
+    color:#166534;
+}
+body[data-mode]:not(.dark-theme) .hud-card strong,
+body[data-mode]:not(.dark-theme) .tool-panel button,
+body[data-mode]:not(.dark-theme) .side-tools .canvas-tool-palette button{
+    color:#0f172a;
+}
+body[data-mode]:not(.dark-theme) .hud-card span,
+body[data-mode]:not(.dark-theme) .tool-palette-hint,
+body[data-mode]:not(.dark-theme) .side-tool-rail button span{
+    color:#52715d;
+}
+body[data-mode]:not(.dark-theme) .side-tool-rail button,
+body[data-mode]:not(.dark-theme) .tool-panel button,
+body[data-mode]:not(.dark-theme) .side-tools .canvas-tool-palette button{
+    background:#ffffff;
+    border-color:#dbe7df;
+}
+body[data-mode]:not(.dark-theme) .tool-panel button:hover,
+body[data-mode]:not(.dark-theme) .tool-panel button.ativo,
+body[data-mode]:not(.dark-theme) .side-tool-rail button:hover,
+body[data-mode]:not(.dark-theme) .side-tool-rail button.ativo{
+    background:#dcfce7;
+    border-color:#22c55e;
+    color:#166534;
+}
+body[data-mode]:not(.dark-theme) #dev-console{
+    background:rgba(255,255,255,.88);
+    border-top:1px solid #dbe7df;
+    color:#166534;
+}
+body[data-mode]:not(.dark-theme) .console-header{
+    border-bottom:1px solid #dbe7df;
+    color:#166534;
+}
+body[data-mode]:not(.dark-theme) .modal-content{
+    background:#ffffff;
+    border-color:#dbe7df;
+    color:#0f172a;
+}
+body[data-mode]:not(.dark-theme) .modal-body{color:#334155;}
+body[data-mode]:not(.dark-theme) .modal-header{border-bottom-color:#dbe7df;}
+body[data-mode]:not(.dark-theme) .btn-close{color:#166534;}
+body[data-mode]:not(.dark-theme) .mobile-budget-bar{
+    background:rgba(255,255,255,.92);
+    border-color:#bbf7d0;
+}
+body[data-mode]:not(.dark-theme) .mobile-budget-bar strong{color:#0f172a;}
+body[data-mode]:not(.dark-theme) .mobile-budget-bar span{color:#52715d;}
+
+.free-collision-toggle{
+    grid-column:1 / -1;
+    min-height:42px;
+    border-radius:13px;
+    border:1px solid rgba(34,197,94,.45)!important;
+    background:rgba(34,197,94,.12)!important;
+    color:#86efac!important;
+    font-weight:1000!important;
+}
+.free-collision-toggle.ativo{
+    border-color:#f59e0b!important;
+    background:rgba(245,158,11,.18)!important;
+    color:#fde68a!important;
+}
+body[data-mode]:not(.dark-theme) .free-collision-toggle{color:#166534!important;background:#ecfdf5!important;}
+body[data-mode]:not(.dark-theme) .free-collision-toggle.ativo{color:#92400e!important;background:#fffbeb!important;border-color:#f59e0b!important;}
+.delete-all-float{
+    position:absolute;
+    right:22px;
+    bottom:142px;
+    z-index:40;
+    min-height:40px;
+    padding:0 15px;
+    border-radius:999px;
+    border:1px solid rgba(248,113,113,.42);
+    background:rgba(69,10,10,.76);
+    color:#fecaca;
+    font-weight:1000;
+    cursor:pointer;
+    box-shadow:0 16px 42px rgba(0,0,0,.25);
+    backdrop-filter:blur(12px);
+}
+.delete-all-float:hover{background:#dc2626;color:#fff;}
+body[data-mode]:not(.dark-theme) .delete-all-float{
+    background:#fff;
+    color:#b91c1c;
+    border-color:#fecaca;
+}
+body[data-mode]:not(.dark-theme) .delete-all-float:hover{background:#fee2e2;color:#991b1b;}
+@media (max-width:980px){
+    .delete-all-float{right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));min-height:36px;font-size:.78rem;}
+}
+
+/* ========================================================================== */
+/* V23 - Ajustes finais: tema claro, hero profissional, botões e colisões      */
+/* ========================================================================== */
+.landing-logo-main{display:none!important;}
+.landing-brand-pill{display:inline-flex;align-items:center;gap:12px;margin-bottom:18px;padding:10px 14px;border-radius:18px;background:rgba(255,255,255,.78);border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 32px rgba(15,23,42,.08)}
+.landing-brand-pill img{height:50px;width:auto;display:block;object-fit:contain}.dark-theme .landing-brand-pill{background:rgba(255,255,255,.07);border-color:rgba(187,247,208,.12)}
+.construction-hero-window{background:linear-gradient(135deg,#f8fff9,#e8f7ee)!important}.construction-hero-window .window-dots{background:rgba(15,23,42,.04);border-bottom:1px solid rgba(15,23,42,.08)}.dark-theme .construction-hero-window .window-dots{background:rgba(255,255,255,.06);border-bottom-color:rgba(255,255,255,.09)}
+body[data-mode]:not(.dark-theme) #loading-screen{background:#f4fff7;color:#166534}body[data-mode]:not(.dark-theme) .loading-text,body[data-mode]:not(.dark-theme) .loading-hardware{color:#166534}body[data-mode]:not(.dark-theme) .loader-cad{border-color:#bbf7d0;border-top-color:#22c55e}
+.collision-float{position:absolute;right:22px;bottom:190px;z-index:41;min-height:40px;padding:0 15px;border-radius:999px;border:1px solid rgba(34,197,94,.42);background:rgba(6,95,70,.80);color:#dcfce7;font-weight:1000;cursor:pointer;box-shadow:0 16px 42px rgba(0,0,0,.24);backdrop-filter:blur(12px)}.collision-float.ativo{background:rgba(245,158,11,.88);border-color:#f59e0b;color:#111827}.collision-float:hover{filter:brightness(1.06)}body[data-mode]:not(.dark-theme) .collision-float{background:#fff;color:#166534;border-color:#bbf7d0}body[data-mode]:not(.dark-theme) .collision-float.ativo{background:#fffbeb;color:#92400e;border-color:#f59e0b}
+body[data-mode]:not(.dark-theme) .modal-backdrop{background:rgba(15,23,42,.24)}
+body[data-mode]:not(.dark-theme) .viewport-container{background:#f3fff7}.dark-theme .brand-mark img,.dark-theme .logo-icon img{filter:none}
+@media (max-width:980px){.landing-brand-pill img{height:42px}.collision-float{right:12px;bottom:calc(132px + env(safe-area-inset-bottom,0px));min-height:36px;font-size:.78rem}.delete-all-float{bottom:calc(86px + env(safe-area-inset-bottom,0px))}}
+
+
+/* ========================================================================== */
+/* V24 - Logo com cores por tema + portas manuais coladas à parede             */
+/* ========================================================================== */
+.landing-brand-lockup{
+    display:inline-flex;
+    align-items:center;
+    margin-bottom:20px;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+}
+.landing-brand-lockup .landing-logo-theme{
+    width:min(360px,82vw);
+    height:auto;
+    max-height:132px;
+    display:block;
+    object-fit:contain;
+}
+.landing-logo-dark-mode{display:none!important;}
+body.dark-theme .landing-logo-light-mode{display:none!important;}
+body.dark-theme .landing-logo-dark-mode{display:block!important;}
+body:not(.dark-theme) .landing-logo-light-mode{display:block!important;}
+body:not(.dark-theme) .landing-logo-dark-mode{display:none!important;}
+body:not(.dark-theme) .brand-text,
+body:not(.dark-theme) .brand-link{color:#0f172a;}
+body.dark-theme .brand-text,
+body.dark-theme .brand-link{color:#f8fff9;}
+body:not(.dark-theme) .brand-mark img{filter:none;}
+body.dark-theme .brand-mark img{filter:none;}
+@media (max-width:700px){
+    .landing-brand-lockup .landing-logo-theme{width:min(310px,86vw);}
+}

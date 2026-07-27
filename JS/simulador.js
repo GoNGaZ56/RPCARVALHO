@@ -1,5 +1,5 @@
 /*
- * R.F. CARVALHO - Simulador Standalone V21
+ * R.F. CARVALHO - Simulador Standalone V23
  * Objetivo desta versão:
  * - Layout simples e responsivo.
  * - Sem alert()/confirm() nativos.
@@ -43,6 +43,7 @@ const App = (function(){
     let rotacoesFerramenta = {};
     let offsetColocacao = {x:0, z:0, y:0};
     let categoriaFerramentaAtual = null;
+    let modoColisaoLivre = false;
 
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 900;
     const QUALITY = isMobile ? 'mobile' : 'desktop';
@@ -146,23 +147,36 @@ const App = (function(){
             '2. Ative apenas os elementos que quer simular. As opções avançadas aparecem automaticamente.\n' +
             '3. A estrada fica fora do lote e apenas cria uma entrada curta para o portão/casa.\n' +
             '4. A garagem subterrânea apenas entra na estimativa, sem alterar o terreno visual.\n' +
-            '5. Para adicionar árvore, planta, deck, pérgola, churrasqueira, candeeiro ou pedra, use os botões 3D por categoria e clique no lote.\n' +
+            '5. Para adicionar árvore, planta, deck, pérgola livre, churrasqueira, candeeiro ou pedra, use os botões 3D por categoria e clique no lote.\n' +
             '6. Para mover a piscina ou o anexo, ative o elemento e use a categoria Mover nos botões 3D.\n' +
             '7. Para relatório, aceite os termos de responsabilidade.',
             [{texto:'OK', tipo:'primary'}]
         );
     }
 
+    function aplicarTemaCena(){
+        if(!cena){ return; }
+        const escuro = document.body.classList.contains('dark-theme');
+        const corFundo = escuro ? 0x06140b : 0xf4fff7;
+        cena.background = new THREE.Color(corFundo);
+        cena.fog = new THREE.Fog(corFundo, escuro ? 60 : 72, escuro ? 220 : 260);
+        if(luzHemi){ luzHemi.intensity = escuro ? .82 : 1.05; }
+        if(luzSol){ luzSol.intensity = escuro ? 1.25 : 1.38; }
+    }
+
     function initTema(){
         const btn = $('btn-dark-mode');
-        const tema = localStorage.getItem('rfTema') || 'dark';
+        document.body.classList.remove('dark-theme');
+        const tema = localStorage.getItem('rfTemaV23') || 'light';
         if(tema === 'dark'){ document.body.classList.add('dark-theme'); }
         if(btn){
             btn.addEventListener('click', function(){
                 document.body.classList.toggle('dark-theme');
-                localStorage.setItem('rfTema', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+                localStorage.setItem('rfTemaV23', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+                aplicarTemaCena();
             });
         }
+        aplicarTemaCena();
     }
 
     function aplicarVisibilidadeCondicional(){
@@ -255,11 +269,12 @@ const App = (function(){
             anexoExtraTelhado: safeValue('anexo-extra-telhado', 'uma_agua'),
             pavimentoLargura: safeNumber('pavimento-largura', 5.0, 1, 25),
             pavimentoProfundidade: safeNumber('pavimento-profundidade', 3.0, 1, 25),
-            caminhoLargura: safeNumber('caminho-largura', 1.4, .6, 5),
-            caminhoComprimento: safeNumber('caminho-comprimento', 6.0, 1, 35),
+            caminhoLargura: safeNumber('caminho-largura', 1.15, .5, 5),
+            caminhoComprimento: safeNumber('caminho-comprimento', 4.5, .8, 35),
             pergolaLargura: safeNumber('pergola-largura', 4.8, 2, 14),
             pergolaProfundidade: safeNumber('pergola-profundidade', 3.3, 2, 10),
             pergolaAltura: safeNumber('pergola-altura', 2.45, 2, 4),
+            pergolaCasa: isSimples ? 'nenhuma' : safeValue('pergola-casa', 'nenhuma'),
             deckLargura: safeNumber('deck-largura', 5.2, 2, 18),
             deckProfundidade: safeNumber('deck-profundidade', 3.2, 2, 14),
             churrascoLargura: safeNumber('churrasco-largura', 3.6, 2.5, 12),
@@ -494,9 +509,9 @@ const App = (function(){
         materiais.relva = new THREE.MeshStandardMaterial({map:relvaTex, color:0xb7dcc5, roughness:1});
         materiais.asfalto = new THREE.MeshStandardMaterial({map:asfaltoTex, roughness:.95});
         materiais.madeira = new THREE.MeshStandardMaterial({map:madeiraTex, roughness:.8});
-        materiais.porta = new THREE.MeshStandardMaterial({map:madeiraTex, roughness:.62});
-        materiais.portao = new THREE.MeshStandardMaterial({map:portaoTex, roughness:.72, metalness:.05});
-        materiais.janela = new THREE.MeshStandardMaterial({map:janelaTex, roughness:.2, metalness:.25});
+        materiais.porta = new THREE.MeshStandardMaterial({map:madeiraTex, roughness:.62, side:THREE.DoubleSide});
+        materiais.portao = new THREE.MeshStandardMaterial({map:portaoTex, roughness:.72, metalness:.05, side:THREE.DoubleSide});
+        materiais.janela = new THREE.MeshStandardMaterial({map:janelaTex, roughness:.2, metalness:.25, side:THREE.DoubleSide});
         materiais.vidro = new THREE.MeshStandardMaterial({color:0xa7f3d0, roughness:.08, metalness:.1, transparent:true, opacity:.78});
         materiais.claraboia = new THREE.MeshStandardMaterial({color:0xbfffe0, roughness:.08, metalness:.12, transparent:true, opacity:.92, emissive:0x0b5d38, emissiveIntensity:.12});
         materiais.agua = new THREE.MeshStandardMaterial({color:0x38bdf8, transparent:true, opacity:.72, roughness:.05, metalness:.02});
@@ -530,8 +545,7 @@ const App = (function(){
             return false;
         }
         cena = new THREE.Scene();
-        cena.background = new THREE.Color(0x06140b);
-        cena.fog = new THREE.Fog(0x06140b, 60, 220);
+        aplicarTemaCena();
         cena.add(grupoMundo);
         cena.add(grupoLote);
         cena.add(grupoConstrucao);
@@ -564,6 +578,7 @@ const App = (function(){
             luzSol.shadow.camera.bottom = -70;
         }
         cena.add(luzSol);
+        aplicarTemaCena();
 
         controlos = new THREE.OrbitControls(camara, renderizador.domElement);
         controlos.enableDamping = true;
@@ -847,6 +862,7 @@ const App = (function(){
             objetosOcupados.push(rect('Casa principal', pos.x, pos.z, fp.unitW + 2, fp.unitD + 2));
         }
         criarGaragem(cfg, lote, fp, pos);
+        criarPergolaLigadaCasa(cfg, lote, fp, pos);
         criarAnexo(cfg, lote, fp, pos);
         criarPiscina(cfg, lote, fp, pos);
         criarClimatizacao(cfg, lote, fp, pos);
@@ -1402,6 +1418,52 @@ const App = (function(){
         return rr;
     }
 
+
+    function criarPergolaLigadaCasa(cfg, lote, fp, posCasa){
+        if(!cfg || !cfg.pergolaCasa || cfg.pergolaCasa === 'nenhuma'){ return; }
+        const dim = {
+            w: cfg.pergolaLargura || 4.8,
+            d: cfg.pergolaProfundidade || 3.3,
+            h: cfg.pergolaAltura || 2.45
+        };
+        const face = cfg.pergolaCasa;
+        let x = posCasa.x;
+        let z = posCasa.z;
+        let rotY = 0;
+        if(face === 'frente'){
+            x = clamp(posCasa.x, posCasa.x - fp.unitW/2 + dim.w/2 + .35, posCasa.x + fp.unitW/2 - dim.w/2 - .35);
+            z = posCasa.z + fp.unitD/2 + dim.d/2 + .10;
+            rotY = 0;
+        }else if(face === 'tras'){
+            x = clamp(posCasa.x, posCasa.x - fp.unitW/2 + dim.w/2 + .35, posCasa.x + fp.unitW/2 - dim.w/2 - .35);
+            z = posCasa.z - fp.unitD/2 - dim.d/2 - .10;
+            rotY = Math.PI;
+        }else if(face === 'esquerda'){
+            x = posCasa.x - fp.unitW/2 - dim.d/2 - .10;
+            z = clamp(posCasa.z, posCasa.z - fp.unitD/2 + dim.w/2 + .35, posCasa.z + fp.unitD/2 - dim.w/2 - .35);
+            rotY = -Math.PI/2;
+        }else if(face === 'direita'){
+            x = posCasa.x + fp.unitW/2 + dim.d/2 + .10;
+            z = clamp(posCasa.z, posCasa.z - fp.unitD/2 + dim.w/2 + .35, posCasa.z + fp.unitD/2 - dim.w/2 - .35);
+            rotY = Math.PI/2;
+        }
+        const r = rectManualRot('Pérgola ligada', x, z, dim.w, dim.d, rotY);
+        if(!insideLotRect(r, lote, 1.05)){
+            if(bootConcluido){ log('Pérgola ligada não colocada: sem espaço dentro do lote.', 'warn'); }
+            return;
+        }
+        for(let i=0;i<objetosOcupados.length;i++){
+            const nome = objetosOcupados[i].name || '';
+            if(nome.indexOf('Casa') >= 0 || nome.indexOf('Vivenda') >= 0){ continue; }
+            if(intersectRect(r, objetosOcupados[i], .55)){
+                if(bootConcluido){ log('Pérgola ligada não colocada: colisão com outro elemento.', 'warn'); }
+                return;
+            }
+        }
+        criarPergolaManual(grupoConstrucao, x, 0, z, 1, {tipo:'pergola_casa', w:dim.w, d:dim.d, h:dim.h, attached:true, face:face, rotY:rotY});
+        objetosOcupados.push(rect('Pérgola ligada', x, z, dim.w + .8, dim.d + .8));
+    }
+
     function criarAnexo(cfg, lote, fp, posCasa){
         if(cfg.anexos === 'nenhum'){ return; }
         const d = dimsAnexo(cfg);
@@ -1623,11 +1685,13 @@ const App = (function(){
         const dim = manualDim('caminho', item);
         const w = dim.w * (scale || 1), d = dim.d * (scale || 1);
         const rot = item.rotY || 0;
-        const slab = addBox(group, w, .075, d, x, y + .055, z, materiais.betao, 'caminho-manual');
-        slab.rotation.y = rot;
+        const local = new THREE.Group();
+        local.position.set(x, y, z);
+        local.rotation.y = rot;
+        group.add(local);
+        addBox(local, w, .075, d, 0, .055, 0, materiais.betao, 'caminho-manual');
         for(let i=-2;i<=2;i++){
-            const junta = addBox(group, w + .02, .025, .035, x, y + .105, z + i*d/5, materiais.pedra, 'junta-caminho');
-            junta.rotation.y = rot;
+            addBox(local, w + .02, .025, .035, 0, .105, i*d/5, materiais.pedra, 'junta-caminho');
         }
     }
 
@@ -1675,8 +1739,14 @@ const App = (function(){
             const mesh=new THREE.Mesh(geo,materiais.telheado); mesh.position.set(x,0,z); mesh.castShadow=QUALITY!=='mobile'; group.add(mesh);
             return;
         }
-        const roof = addBox(group, w + .50, .16, d + .50, x, topY + .32, z, materiais.telheado, 'telhado-anexo-extra-uma-agua');
+        // Fecha visualmente o telhado de uma água com paredes/empenas, para o teto não ficar suspenso.
+        const rise = .72;
+        const roof = addBox(group, w + .58, .18, d + .58, x, topY + rise/2 + .04, z, materiais.telheado, 'telhado-anexo-extra-uma-agua');
         roof.rotation.x = deg(-7);
+        addBox(group, w + .08, rise, .12, x, topY + rise/2, z + d/2 + .045, materiais.parede, 'parede-alta-anexo-uma-agua');
+        addBox(group, .12, rise*.68, d + .08, x - w/2 - .045, topY + rise*.34, z, materiais.parede, 'empena-esq-anexo-uma-agua');
+        addBox(group, .12, rise*.68, d + .08, x + w/2 + .045, topY + rise*.34, z, materiais.parede, 'empena-dir-anexo-uma-agua');
+        addBox(group, w + .18, .10, .12, x, topY + .05, z - d/2 - .03, materiais.parede, 'remate-baixo-anexo-uma-agua');
     }
 
     function criarAnexoLivreManual(group, x, y, z, scale, item){
@@ -1718,10 +1788,44 @@ const App = (function(){
 
     function criarAberturaManual(group, m, tipo){
         const mat = tipo === 'porta' ? materiais.porta : materiais.janela;
-        const w = tipo === 'porta' ? 1.0 : 1.15;
-        const h = tipo === 'porta' ? 2.1 : 1.05;
-        const y = isFinite(m.y) ? m.y : (tipo === 'porta' ? 1.05 : 1.75);
-        addPlane(group, w, h, m.x, y, m.z, m.rotY || 0, mat, tipo === 'porta' ? 'porta-extra' : 'janela-extra');
+        const w = tipo === 'porta' ? 1.02 : 1.15;
+        const h = tipo === 'porta' ? 2.08 : 1.05;
+        let x = Number(m.x || 0), z = Number(m.z || 0);
+        const face = m.face || 'frente';
+
+        if(tipo === 'porta'){
+            // Porta manual como volume fino, não como plano solto.
+            // Assim fica pousada no chão e encostada à fachada, sem parecer a voar.
+            const esp = .095;
+            const y = h / 2 + .018;
+            const afastamento = .035;
+            if(face === 'frente'){ z += afastamento; }
+            else if(face === 'tras'){ z -= afastamento; }
+            else if(face === 'esq'){ x -= afastamento; }
+            else if(face === 'dir'){ x += afastamento; }
+
+            let porta;
+            if(face === 'esq' || face === 'dir'){
+                porta = addBox(group, esp, h, w, x, y, z, mat, 'porta-extra-colada');
+                addBox(group, .035, h + .10, w + .18, x + (face === 'esq' ? -.032 : .032), y, z, materiais.madeira, 'aro-porta-extra');
+                addBox(group, .16, .045, w + .18, x, .028, z, materiais.madeira, 'soleira-porta-extra');
+            }else{
+                porta = addBox(group, w, h, esp, x, y, z, mat, 'porta-extra-colada');
+                addBox(group, w + .18, h + .10, .035, x, y, z + (face === 'frente' ? .032 : -.032), materiais.madeira, 'aro-porta-extra');
+                addBox(group, w + .18, .045, .16, x, .028, z, materiais.madeira, 'soleira-porta-extra');
+            }
+            porta.renderOrder = 7;
+            return;
+        }
+
+        const y = isFinite(m.y) ? m.y : 1.75;
+        const eps = .022;
+        if(face === 'frente'){ z += eps; }
+        else if(face === 'tras'){ z -= eps; }
+        else if(face === 'esq'){ x -= eps; }
+        else if(face === 'dir'){ x += eps; }
+        const mesh = addPlane(group, w, h, x, y, z, m.rotY || 0, mat, 'janela-extra-colada');
+        mesh.renderOrder = 6;
     }
 
     function criarChamineManual(group, m){
@@ -1736,7 +1840,7 @@ const App = (function(){
         const cfg = ultimoCfg || lerCfg();
         const scale = src && isFinite(src.scale) ? Number(src.scale) : 1;
         if(tipo === 'deck'){ return {w:(src && src.w) || cfg.deckLargura || 5.2, d:(src && src.d) || cfg.deckProfundidade || 3.2}; }
-        if(tipo === 'pergola'){ return {w:(src && src.w) || cfg.pergolaLargura || 4.8, d:(src && src.d) || cfg.pergolaProfundidade || 3.3, h:(src && src.h) || cfg.pergolaAltura || 2.45}; }
+        if(tipo === 'pergola' || tipo === 'pergola_casa'){ return {w:(src && src.w) || cfg.pergolaLargura || 4.8, d:(src && src.d) || cfg.pergolaProfundidade || 3.3, h:(src && src.h) || cfg.pergolaAltura || 2.45}; }
         if(tipo === 'churrasqueira'){ return {w:(src && src.w) || cfg.churrascoLargura || 3.6, d:(src && src.d) || cfg.churrascoProfundidade || 2.5}; }
         if(tipo === 'candeeiro'){ return {w:1.2*scale,d:1.2*scale}; }
         if(tipo === 'planta' || tipo === 'pedra' || tipo === 'rocha'){ return {w:1.3*scale,d:1.3*scale}; }
@@ -1748,7 +1852,7 @@ const App = (function(){
         if(tipo === 'varanda_extra'){ return {w:(src && src.w) || cfg.varandaLargura || 3.2, d:(src && src.d) || cfg.varandaProfundidade || 1.35}; }
         if(tipo === 'anexo_extra'){ return {w:(src && src.w) || cfg.anexoExtraLargura || 6, d:(src && src.d) || cfg.anexoExtraProfundidade || 4.2, h:(src && src.h) || cfg.anexoExtraAltura || 2.75, telhado:(src && src.telhado) || cfg.anexoExtraTelhado || 'uma_agua'}; }
         if(tipo === 'pavimento'){ return {w:(src && src.w) || cfg.pavimentoLargura || 5, d:(src && src.d) || cfg.pavimentoProfundidade || 3}; }
-        if(tipo === 'caminho'){ return {w:(src && src.w) || cfg.caminhoLargura || 1.4, d:(src && src.d) || cfg.caminhoComprimento || 6}; }
+        if(tipo === 'caminho'){ return {w:(src && src.w) || cfg.caminhoLargura || 1.15, d:(src && src.d) || cfg.caminhoComprimento || 4.5}; }
         return {w:2.2*scale,d:2.2*scale};
     }
 
@@ -1768,10 +1872,11 @@ const App = (function(){
             if(!m || !m.tipo || !isFinite(m.x) || !isFinite(m.z)){ continue; }
             const isWallTool = m.tipo === 'janela_extra' || m.tipo === 'porta_extra' || m.tipo === 'varanda_extra';
             const isRoofTool = m.tipo === 'chamine';
+            const bypassManual = m.noCollision === true || m.tipo === 'caminho';
             const r = manualRect(m);
-            if(!isWallTool && !isRoofTool && !insideLotRect(r, lote, 1.2)){ continue; }
+            if(!isWallTool && !isRoofTool && !bypassManual && !insideLotRect(r, lote, 1.2)){ continue; }
             let colide = false;
-            if(!isWallTool && !isRoofTool){
+            if(!isWallTool && !isRoofTool && !bypassManual){
                 for(let j=0;j<objetosOcupados.length;j++){
                     if(intersectRect(r, objetosOcupados[j], .75)){ colide = true; break; }
                 }
@@ -1787,7 +1892,7 @@ const App = (function(){
             if(m.tipo === 'deck'){ criarDeckManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
             if(m.tipo === 'pavimento'){ criarPavimentoManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
             if(m.tipo === 'caminho'){ criarCaminhoManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
-            if(m.tipo === 'pergola'){ criarPergolaManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'pergola' || m.tipo === 'pergola_casa'){ criarPergolaManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
             if(m.tipo === 'churrasqueira'){ criarChurrasqueiraManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
             if(m.tipo === 'anexo_extra'){ criarAnexoLivreManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
             if(m.tipo === 'carro'){ criarCarroManual(grupoManuais, m.x, y, m.z, m.rotY || 0); }
@@ -1800,7 +1905,7 @@ const App = (function(){
                 grupoManuais.children[c].userData.manualIndex = validados.length;
                 grupoManuais.children[c].userData.manualTipo = m.tipo;
             }
-            if(!isWallTool && !isRoofTool && m.tipo !== 'varanda_extra'){ objetosOcupados.push(r); }
+            if(!isWallTool && !isRoofTool && m.tipo !== 'varanda_extra' && !bypassManual){ objetosOcupados.push(r); }
             validados.push(m);
         }
         manuais = validados;
@@ -1809,7 +1914,7 @@ const App = (function(){
 
 
     function ferramentaPermiteRotacao(tool){
-        return ['deck','pavimento','caminho','pergola','churrasqueira','anexo_extra','carro','chafariz','arvore','palmeira','planta','pedra','rocha','candeeiro'].indexOf(tool) >= 0;
+        return ['deck','pavimento','caminho','pergola','pergola_casa','churrasqueira','anexo_extra','carro','chafariz','arvore','palmeira','planta','pedra','rocha','candeeiro'].indexOf(tool) >= 0;
     }
 
     function rotacaoAtualFerramenta(tool){
@@ -1849,7 +1954,7 @@ const App = (function(){
     }
 
     function ferramentaPermiteOffsetVertical(tool){
-        return ['deck','pavimento','caminho','pergola','churrasqueira','anexo_extra','carro','chafariz','arvore','palmeira','planta','pedra','rocha','candeeiro'].indexOf(tool) >= 0;
+        return ['deck','pavimento','caminho','pergola','pergola_casa','churrasqueira','anexo_extra','carro','chafariz','arvore','palmeira','planta','pedra','rocha','candeeiro'].indexOf(tool) >= 0;
     }
 
     function aplicarOffsetPonto(p){
@@ -1902,6 +2007,30 @@ const App = (function(){
         }
     }
 
+    function atualizarBotaoColisaoLivre(){
+        const label = modoColisaoLivre ? 'Colisões: OFF' : 'Colisões: ON';
+        const title = modoColisaoLivre ? 'Colisões desligadas: permite colocar livremente.' : 'Colisões ligadas: impede sobreposição de elementos.';
+        qsa('[data-free-collision-toggle], #btn-colisao-livre').forEach(function(btn){
+            btn.classList.toggle('ativo', modoColisaoLivre);
+            btn.textContent = label;
+            btn.title = title;
+        });
+        const tag = $('status-colisao-livre');
+        if(tag){ tag.textContent = modoColisaoLivre ? 'Colisões desligadas' : 'Colisões ativas'; }
+    }
+
+    function alternarColisaoLivre(){
+        modoColisaoLivre = !modoColisaoLivre;
+        atualizarBotaoColisaoLivre();
+        atualizarPreviewPorUltimoPonto();
+        log(modoColisaoLivre ? 'Colisões desligadas: colocação livre ativada.' : 'Colisões ativas novamente.', modoColisaoLivre ? 'warn' : 'sys');
+    }
+
+    function colocacaoLivreAtiva(tool){
+        if(tool === 'caminho'){ return true; }
+        return modoColisaoLivre === true;
+    }
+
     function pontoDentroLote(x,z,lote,margin){
         return pontoDentroLotePoligono(x, z, lote, margin || 0);
     }
@@ -1936,6 +2065,10 @@ const App = (function(){
         if(box){ box.classList.toggle('aberto', !!categoriaFerramentaAtual); }
         qsa('[data-tool-category]').forEach(function(b){ b.classList.toggle('ativo', b.getAttribute('data-tool-category') === categoriaFerramentaAtual); });
         qsa('[data-tool-panel]').forEach(function(p){ p.classList.toggle('ativo', p.getAttribute('data-tool-panel') === categoriaFerramentaAtual); });
+        if(categoriaFerramentaAtual === 'eliminar'){
+            ferramentaAtual = null;
+            setFerramentaAtual('apagar_extra');
+        }
     }
 
 
@@ -1996,7 +2129,7 @@ const App = (function(){
 
     function snapParede(x,z, apenasCasa){
         let melhor = null;
-        const maxDist = apenasCasa ? 4.8 : 2.0;
+        const maxDist = apenasCasa ? 4.8 : 2.8;
         for(let i=0;i<objetosOcupados.length;i++){
             const o = objetosOcupados[i];
             const nome = o.name || '';
@@ -2094,8 +2227,13 @@ const App = (function(){
         let item = {tipo:tool, x:x, z:z, scale:1, rotY:rotY, yOffset: offsetColocacao.y || 0};
         let r = rectManualRot('Manual ' + tool, x, z, dim.w || 1, dim.d || 1, rotY);
         let ignorar = [];
-        if(tool === 'pergola'){
+        const semColisao = colocacaoLivreAtiva(tool);
+        if(tool === 'pergola' || tool === 'pergola_casa'){
             const snap = snapPergola(x,z,dim);
+            if(tool === 'pergola_casa' && !snap){
+                item.w = dim.w; item.d = dim.d; item.h = dim.h;
+                return {ok:false, item:item, rect:r, reason:'A pérgola ligada tem de ser colocada junto a uma parede da casa.'};
+            }
             if(snap){
                 item.x = snap.x; item.z = snap.z; item.attached = true; item.face = snap.face; item.rotY = snap.rotY || 0; item.w = dim.w; item.d = dim.d; item.h = dim.h;
                 r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
@@ -2107,11 +2245,13 @@ const App = (function(){
         }
         if(tool === 'deck' || tool === 'pavimento' || tool === 'caminho'){
             item.w = dim.w; item.d = dim.d;
-            if(tool === 'pavimento'){
-                const snapPav = snapPavimentoAoExistente(item.x, item.z, dim, item.rotY);
-                if(snapPav){ item.x = snapPav.x; item.z = snapPav.z; }
-            }
+            const snapPav = snapPavimentoAoExistente(item.x, item.z, dim, item.rotY);
+            if(snapPav){ item.x = snapPav.x; item.z = snapPav.z; }
             r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
+            if(tool === 'caminho'){
+                item.noCollision = true;
+                return {ok:true, item:item, rect:r, free:true};
+            }
         }
         if(tool === 'churrasqueira'){
             item.w = dim.w; item.d = dim.d;
@@ -2141,8 +2281,11 @@ const App = (function(){
         if(tool === 'janela_extra' || tool === 'porta_extra'){
             const snap = snapParede(x,z,false);
             if(!snap){ return {ok:false, item:item, rect:r, reason:'A janela/porta tem de ser colocada junto a uma parede existente.'}; }
-            item.x = snap.x; item.z = snap.z; item.rotY = snap.rotY; item.y = tool === 'porta_extra' ? 1.08 : 1.78;
-            return {ok:true, item:item, rect:rect('Abertura', item.x, item.z, 1.2, 1.2), wall:true};
+            item.face = snap.face;
+            item.x = snap.x; item.z = snap.z; item.rotY = snap.rotY;
+            item.y = tool === 'porta_extra' ? 1.05 : 1.78;
+            item.yOffset = 0;
+            return {ok:true, item:item, rect:rect('Abertura', item.x, item.z, tool === 'porta_extra' ? .65 : 1.0, tool === 'porta_extra' ? .65 : 1.0), wall:true};
         }
         if(tool === 'chamine'){
             const snap = snapChamine(x,z,cfg);
@@ -2150,11 +2293,19 @@ const App = (function(){
             item.x = snap.x; item.z = snap.z; item.y = snap.y;
             return {ok:true, item:item, rect:rect('Chaminé', item.x, item.z, 1, 1), roof:true};
         }
-        if(!insideLotRect(r, lote, 1.2)){ return {ok:false, item:item, rect:r, reason:'O elemento tem de ficar dentro do lote.'}; }
+        if(semColisao){
+            item.noCollision = true;
+            return {ok:true, item:item, rect:r, free:true};
+        }
+        if(!insideLotRect(r, lote, tool === 'caminho' ? .15 : 1.2)){ return {ok:false, item:item, rect:r, reason:'O elemento tem de ficar dentro do lote.'}; }
         for(let i=0;i<objetosOcupados.length;i++){
             const nome = objetosOcupados[i].name || '';
             if(ignorar.indexOf(nome) >= 0){ continue; }
-            if(intersectRect(r, objetosOcupados[i], .85)){ return {ok:false, item:item, rect:r, reason:'Existe colisão com outro elemento.'}; }
+            const margem = tool === 'caminho' ? .05 : .85;
+            if(tool === 'caminho' && (nome.indexOf('Casa') >= 0 || nome.indexOf('Garagem') >= 0 || nome.indexOf('Anexo') >= 0 || nome.indexOf('Piscina') >= 0)){
+                continue;
+            }
+            if(intersectRect(r, objetosOcupados[i], margem)){ return {ok:false, item:item, rect:r, reason:'Existe colisão com outro elemento.'}; }
         }
         return {ok:true, item:item, rect:r};
     }
@@ -2201,8 +2352,8 @@ const App = (function(){
             const comp = safeNumber('piscina-comprimento', 8, 4, 30);
             const larg = safeNumber('piscina-largura', 4, 2.5, 15);
             const r = rect('Piscina', p.x, p.z, comp + 2, larg + 2);
-            let ok = insideLotRect(r, lote, 1.4);
-            if(ok){
+            let ok = colocacaoLivreAtiva('mover_piscina') ? true : insideLotRect(r, lote, 1.4);
+            if(ok && !colocacaoLivreAtiva('mover_piscina')){
                 for(let i=0;i<objetosOcupados.length;i++){
                     if(objetosOcupados[i].name === 'Piscina'){ continue; }
                     if(intersectRect(r, objetosOcupados[i], 1.0)){ ok = false; break; }
@@ -2213,8 +2364,8 @@ const App = (function(){
             const cfgAtual = lerCfg();
             const dim = dimsAnexo(cfgAtual);
             const r = rect('Anexo', p.x, p.z, dim.w, dim.d);
-            let ok = cfgAtual.anexos !== 'nenhum' && insideLotRect(r, lote, 1.7);
-            if(ok){
+            let ok = cfgAtual.anexos !== 'nenhum' && (colocacaoLivreAtiva('mover_anexo') ? true : insideLotRect(r, lote, 1.7));
+            if(ok && !colocacaoLivreAtiva('mover_anexo')){
                 for(let i=0;i<objetosOcupados.length;i++){
                     if(objetosOcupados[i].name === 'Anexo'){ continue; }
                     if(intersectRect(r, objetosOcupados[i], 1.05)){ ok = false; break; }
@@ -2246,15 +2397,18 @@ const App = (function(){
             const comp = safeNumber('piscina-comprimento', 8, 4, 30);
             const larg = safeNumber('piscina-largura', 4, 2.5, 15);
             const r = rect('Piscina', p.x, p.z, comp + 2, larg + 2);
-            if(!insideLotRect(r, lote, 1.4)){
+            const semColisao = colocacaoLivreAtiva('mover_piscina');
+            if(!semColisao && !insideLotRect(r, lote, 1.4)){
                 mostrarModal('Piscina fora do lote', 'A piscina tem de ficar totalmente dentro do terreno e afastada do muro.', [{texto:'OK', tipo:'primary'}]);
                 return;
             }
-            for(let i=0;i<objetosOcupados.length;i++){
-                if(objetosOcupados[i].name === 'Piscina'){ continue; }
-                if(intersectRect(r, objetosOcupados[i], 1.0)){
-                    mostrarModal('Piscina sem espaço', 'Não é possível mover a piscina para esse local porque colide com outra construção ou elemento exterior.', [{texto:'OK', tipo:'primary'}]);
-                    return;
+            if(!semColisao){
+                for(let i=0;i<objetosOcupados.length;i++){
+                    if(objetosOcupados[i].name === 'Piscina'){ continue; }
+                    if(intersectRect(r, objetosOcupados[i], 1.0)){
+                        mostrarModal('Piscina sem espaço', 'Não é possível mover a piscina para esse local porque colide com outra construção ou elemento exterior.', [{texto:'OK', tipo:'primary'}]);
+                        return;
+                    }
                 }
             }
             const piscina = $('piscina'); if(piscina){ piscina.checked = true; }
@@ -2273,15 +2427,18 @@ const App = (function(){
             }
             const dim = dimsAnexo(cfgAtual);
             const r = rect('Anexo', p.x, p.z, dim.w, dim.d);
-            if(!insideLotRect(r, lote, 1.7)){
+            const semColisaoAnexo = colocacaoLivreAtiva('mover_anexo');
+            if(!semColisaoAnexo && !insideLotRect(r, lote, 1.7)){
                 mostrarModal('Anexo fora do lote', 'O anexo tem de ficar totalmente dentro do terreno e afastado do muro.', [{texto:'OK', tipo:'primary'}]);
                 return;
             }
-            for(let i=0;i<objetosOcupados.length;i++){
-                if(objetosOcupados[i].name === 'Anexo'){ continue; }
-                if(intersectRect(r, objetosOcupados[i], 1.05)){
-                    mostrarModal('Anexo sem espaço', 'Não é possível colocar o anexo nesse ponto porque colide com a casa, garagem, piscina ou outro elemento exterior.', [{texto:'OK', tipo:'primary'}]);
-                    return;
+            if(!semColisaoAnexo){
+                for(let i=0;i<objetosOcupados.length;i++){
+                    if(objetosOcupados[i].name === 'Anexo'){ continue; }
+                    if(intersectRect(r, objetosOcupados[i], 1.05)){
+                        mostrarModal('Anexo sem espaço', 'Não é possível colocar o anexo nesse ponto porque colide com a casa, garagem, piscina ou outro elemento exterior.', [{texto:'OK', tipo:'primary'}]);
+                        return;
+                    }
                 }
             }
             setValueIfExists('anexo-manual','1');
@@ -2297,7 +2454,8 @@ const App = (function(){
             return;
         }
         const item = avaliacao.item;
-        if(['deck','pavimento','caminho','pergola','churrasqueira','anexo_extra','carro','chafariz','janela_extra','porta_extra','varanda_extra','chamine'].indexOf(item.tipo) < 0){
+        if(avaliacao.free || colocacaoLivreAtiva(item.tipo)){ item.noCollision = true; }
+        if(['deck','pavimento','caminho','pergola','pergola_casa','churrasqueira','anexo_extra','carro','chafariz','janela_extra','porta_extra','varanda_extra','chamine'].indexOf(item.tipo) < 0){
             item.scale = .85 + Math.random()*.35;
         }
         manuais.push(item);
@@ -2306,8 +2464,17 @@ const App = (function(){
 
 
     function limparManuais(){
-        manuais = [];
-        atualizarGeometria(false);
+        if(!manuais.length){
+            mostrarModal('Sem extras', 'Não existem extras manuais para eliminar.', [{texto:'OK', tipo:'primary'}]);
+            return;
+        }
+        mostrarModal('Eliminar todos os extras', 'Esta ação remove todos os extras manuais colocados no 3D. Pretende continuar?', [
+            {texto:'Cancelar', tipo:'secondary'},
+            {texto:'Eliminar tudo', tipo:'primary', acao:function(){
+                manuais = [];
+                atualizarGeometria(false);
+            }}
+        ]);
     }
 
     function atualizarResumo(cfg){
@@ -2322,6 +2489,7 @@ const App = (function(){
         if(cfg.climatizacao && cfg.climatizacao !== 'nenhuma'){ items.push(['Climatização', cfg.climatizacao]); }
         if(cfg.tipoMuro !== 'nenhum'){ items.push(['Vedação', cfg.tipoMuro]); }
         if(cfg.anexos !== 'nenhum'){ items.push(['Anexo', cfg.anexos + ' / ' + (cfg.anexoManual ? 'posição manual' : cfg.posicaoAnexo)]); }
+        if(cfg.pergolaCasa && cfg.pergolaCasa !== 'nenhuma'){ items.push(['Pérgola ligada', cfg.pergolaCasa]); }
         if(cfg.piscina){ items.push(['Piscina', cfg.piscinaComprimento + ' x ' + cfg.piscinaLargura + ' m']); }
         if(manuais.length){
             const porTipo = {};
@@ -2362,6 +2530,7 @@ const App = (function(){
             if(cfg.anexos === 'garagem'){ v = 22000 + (cfg.garagemAnexoPortoes-1)*3600; }
             rubricas.push({nome:'Anexo', valor:v}); total += v;
         }
+        if(cfg.pergolaCasa && cfg.pergolaCasa !== 'nenhuma'){ const v = 3400; rubricas.push({nome:'Pérgola ligada à casa', valor:v}); total += v; }
         if(cfg.piscina){ const v = cfg.piscinaComprimento * cfg.piscinaLargura * 650 + 9000; rubricas.push({nome:'Piscina', valor:v}); total += v; }
         if(cfg.paineis){ const v = 7200; rubricas.push({nome:'Painéis fotovoltaicos', valor:v}); total += v; }
         if(cfg.claraboias > 0){ const v = cfg.claraboias * 950; rubricas.push({nome:'Claraboias', valor:v}); total += v; }
@@ -2376,7 +2545,7 @@ const App = (function(){
         let exterior = 0;
         manuais.forEach(function(m){
             if(m.tipo === 'deck'){ exterior += 2600; }
-            else if(m.tipo === 'pergola'){ exterior += 3400; }
+            else if(m.tipo === 'pergola' || m.tipo === 'pergola_casa'){ exterior += 3400; }
             else if(m.tipo === 'churrasqueira'){ exterior += 5200; }
             else if(m.tipo === 'anexo_extra'){ exterior += Math.max(9000, ((m.w || cfg.anexoExtraLargura || 6) * (m.d || cfg.anexoExtraProfundidade || 4.2)) * 650); }
             else if(m.tipo === 'varanda_extra'){ exterior += 4200; }
@@ -2442,10 +2611,15 @@ const App = (function(){
     function cfgToXML(cfg){
         const esc = escapeHTML;
         const attrs = Object.keys(cfg).map(function(k){ return '    <campo nome="' + esc(k) + '">' + esc(cfg[k]) + '</campo>'; }).join('\n');
-        const manualXML = manuais.map(function(m){ return '    <elemento tipo="' + esc(m.tipo) + '" x="' + Number(m.x).toFixed(3) + '" z="' + Number(m.z).toFixed(3) + '" scale="' + Number(m.scale || 1).toFixed(3) + '" />'; }).join('\n');
-        return '<?xml version="1.0" encoding="UTF-8"?>\n<simulacaoRFCarvalho versao="16">\n  <configuracao>\n' + attrs + '\n  </configuracao>\n  <elementosManuais>\n' + manualXML + '\n  </elementosManuais>\n</simulacaoRFCarvalho>';
+        const manualXML = manuais.map(function(m){
+            const extra = [];
+            ['w','d','h','rotY','y','yOffset','face','attached','telhado','noCollision'].forEach(function(k){
+                if(m[k] !== undefined && m[k] !== null){ extra.push(k + '="' + esc(m[k]) + '"'); }
+            });
+            return '    <elemento tipo="' + esc(m.tipo) + '" x="' + Number(m.x).toFixed(3) + '" z="' + Number(m.z).toFixed(3) + '" scale="' + Number(m.scale || 1).toFixed(3) + '" ' + extra.join(' ') + ' />';
+        }).join('\n');
+        return '<?xml version="1.0" encoding="UTF-8"?>\n<simulacaoRFCarvalho versao="22">\n  <configuracao>\n' + attrs + '\n  </configuracao>\n  <elementosManuais>\n' + manualXML + '\n  </elementosManuais>\n</simulacaoRFCarvalho>';
     }
-
     function guardarProjeto(){
         const cfg = lerCfg();
         localStorage.setItem('rfProjetoXML', cfgToXML(cfg));
@@ -2490,7 +2664,7 @@ const App = (function(){
             piscinaX:'piscina-x', piscinaZ:'piscina-z', climatizacao:'climatizacao', varandaLargura:'varanda-largura', varandaProfundidade:'varanda-profundidade',
             anexoExtraLargura:'anexo-extra-largura', anexoExtraProfundidade:'anexo-extra-profundidade', anexoExtraAltura:'anexo-extra-altura', anexoExtraTelhado:'anexo-extra-telhado',
             pavimentoLargura:'pavimento-largura', pavimentoProfundidade:'pavimento-profundidade', caminhoLargura:'caminho-largura', caminhoComprimento:'caminho-comprimento',
-            pergolaLargura:'pergola-largura', pergolaProfundidade:'pergola-profundidade', pergolaAltura:'pergola-altura', deckLargura:'deck-largura', deckProfundidade:'deck-profundidade', churrascoLargura:'churrasco-largura', churrascoProfundidade:'churrasco-profundidade'
+            pergolaCasa:'pergola-casa', pergolaLargura:'pergola-largura', pergolaProfundidade:'pergola-profundidade', pergolaAltura:'pergola-altura', deckLargura:'deck-largura', deckProfundidade:'deck-profundidade', churrascoLargura:'churrasco-largura', churrascoProfundidade:'churrasco-profundidade'
         };
         return mapa[k] || k;
     }
@@ -2508,8 +2682,9 @@ const App = (function(){
                 doc.querySelectorAll('configuracao campo').forEach(function(c){ data[c.getAttribute('nome')] = c.textContent; });
                 doc.querySelectorAll('elementosManuais elemento').forEach(function(e){
                     const item = {tipo:e.getAttribute('tipo'), x:parseFloat(e.getAttribute('x')), z:parseFloat(e.getAttribute('z')), scale:parseFloat(e.getAttribute('scale') || '1')};
-                    ['w','d','h','y','rotY'].forEach(function(k){ if(e.hasAttribute(k)){ item[k] = parseFloat(e.getAttribute(k)); } });
+                    ['w','d','h','y','yOffset','rotY'].forEach(function(k){ if(e.hasAttribute(k)){ item[k] = parseFloat(e.getAttribute(k)); } });
                     if(e.hasAttribute('attached')){ item.attached = e.getAttribute('attached') === 'true' || e.getAttribute('attached') === '1'; }
+                    if(e.hasAttribute('noCollision')){ item.noCollision = e.getAttribute('noCollision') === 'true' || e.getAttribute('noCollision') === '1'; }
                     if(e.hasAttribute('face')){ item.face = e.getAttribute('face'); }
                     if(e.hasAttribute('telhado')){ item.telhado = e.getAttribute('telhado'); }
                     elems.push(item);
@@ -2593,6 +2768,9 @@ const App = (function(){
                 setCategoriaFerramenta(btn.getAttribute('data-tool-category'));
             });
         });
+        qsa('[data-free-collision-toggle]').forEach(function(btn){
+            btn.addEventListener('click', function(){ alternarColisaoLivre(); });
+        });
     }
 
     function initAutoUpdate(){
@@ -2659,6 +2837,7 @@ const App = (function(){
         criarMateriais();
         initAutoUpdate();
         initFerramentas();
+        atualizarBotaoColisaoLivre();
         const saved = localStorage.getItem('rfProjetoXML');
         if(saved && document.body.getAttribute('data-mode') === 'pro'){
             // Não carrega automaticamente para não confundir o utilizador; fica disponível por importação/guardar.
@@ -2666,7 +2845,7 @@ const App = (function(){
         atualizarGeometria(true);
         const loader = $('loading-screen');
         if(loader){ setTimeout(function(){ loader.style.opacity = '0'; setTimeout(function(){ loader.style.display='none'; }, 260); }, 420); }
-        log('Engine CAD 21.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
+        log('Engine CAD 23.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
         loop();
     }
 
@@ -2687,6 +2866,7 @@ const App = (function(){
         alternarPainel: alternarPainel,
         alternarFerramentas3D: alternarFerramentas3D,
         alternarDimensoesExteriores: alternarDimensoesExteriores,
+        alternarColisaoLivre: alternarColisaoLivre,
         ativarFerramenta: setFerramentaAtual,
         definirCategoriaFerramenta: setCategoriaFerramenta
     };

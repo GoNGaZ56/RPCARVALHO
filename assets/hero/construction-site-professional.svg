@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-label="Obra de construção com grua, bulldozer e moradia">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fff9"/><stop offset="1" stop-color="#dff6e7"/></linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bdf4cc"/><stop offset="1" stop-color="#6fcf8e"/></linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#29485b"/><stop offset="1" stop-color="#132431"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#0f172a" flood-opacity=".18"/></filter>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0v42" fill="none" stroke="#166534" stroke-opacity=".09" stroke-width="1"/></pattern>
+  </defs>
+  <rect width="1200" height="720" fill="url(#sky)"/>
+  <rect width="1200" height="720" fill="url(#grid)"/>
+  <path d="M0 536C175 492 330 498 470 525c164 32 318 13 482-22 102-22 186-24 248 2v215H0Z" fill="url(#ground)"/>
+  <path d="M95 612C270 572 415 558 595 585s350 8 520-42" fill="none" stroke="#0f172a" stroke-opacity=".13" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- crane -->
+  <g stroke="#1f3b4d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".96">
+    <path d="M735 116v392"/>
+    <path d="M695 508h83M712 116h46"/>
+    <path d="M735 122l-118 92h408"/>
+    <path d="M617 214l58-45M690 214l58-45M764 214l58-45M838 214l58-45M912 214l58-45" opacity=".65"/>
+    <path d="M1025 214l-22 72"/>
+    <rect x="977" y="286" width="52" height="35" rx="4" fill="#263f50" stroke="none"/>
+    <path d="M735 156l-68 52M735 202l-68 52M735 248l-68 52M735 294l-68 52M735 340l-68 52M735 386l-68 52M735 432l-68 52" opacity=".46"/>
+  </g>
+
+  <!-- house under construction -->
+  <g filter="url(#shadow)">
+    <path d="M392 346h360v182H392z" fill="#f7faf8"/>
+    <path d="M392 346l180-105 180 105z" fill="#a9632c"/>
+    <path d="M414 362h316v160H414z" fill="#ffffff"/>
+    <path d="M430 390h68v52h-68zm102 0h68v52h-68zm102 0h68v52h-68z" fill="#dff6e7" stroke="#1f5132" stroke-width="7"/>
+    <path d="M532 468h78v56h-78z" fill="#dff6e7" stroke="#1f5132" stroke-width="7"/>
+    <path d="M660 468h52v56h-52z" fill="#9a5a26"/>
+    <path d="M378 352l194-116 194 116" stroke="#5d351c" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <path d="M388 528h372" stroke="#a9632c" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <!-- scaffolding -->
+  <g stroke="#1f3b4d" stroke-width="5" fill="none" opacity=".72">
+    <path d="M338 374v154M785 374v154M338 418h447M338 480h447"/>
+    <path d="M338 528l52-154M390 528l52-154M785 528l-52-154M733 528l-52-154" opacity=".55"/>
+  </g>
+
+  <!-- bulldozer -->
+  <g transform="translate(130 493)" filter="url(#shadow)">
+    <path d="M40 60h174l16 48H28z" fill="#eab308"/>
+    <path d="M84 22h82l34 38H58z" fill="#f59e0b"/>
+    <path d="M103 30h48l22 30h-70z" fill="#dff6e7"/>
+    <path d="M220 81l92-28 14 26-90 44z" fill="#d97706"/>
+    <rect x="44" y="94" width="170" height="38" rx="19" fill="#142331"/>
+    <circle cx="78" cy="113" r="20" fill="#263f50"/><circle cx="138" cy="113" r="20" fill="#263f50"/><circle cx="196" cy="113" r="20" fill="#263f50"/>
+  </g>
+
+  <!-- site details -->
+  <g opacity=".9">
+    <path d="M820 578h205" stroke="#166534" stroke-width="10" stroke-linecap="round"/>
+    <path d="M822 596h150" stroke="#166534" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+    <rect x="840" y="512" width="82" height="58" fill="#d97706" rx="6"/>
+    <rect x="936" y="516" width="118" height="54" fill="#eab308" rx="6"/>
+    <path d="M840 512l42-24 40 24" fill="#8b5a2b"/>
+  </g>
+
+  <rect x="0" y="640" width="1200" height="80" fill="#052e16" opacity=".08"/>
+</svg>

@@ -20,7 +20,7 @@
     </div>
 
     <header class="app-header">
-        <a href="index.html" class="logo-container logo-link"><span class="logo-icon"><img src="assets/logo/rf-carvalho-mark.svg" alt=""></span><span class="app-brand-name">R.F. CARVALHO</span> <span class="badge">PRO CAD</span></a>
+        <a href="index.html" class="logo-container logo-link"><span class="logo-icon"><img src="assets/logo/rf-carvalho-mark-clean-card.png" alt=""></span><span class="app-brand-name">R.F. CARVALHO</span> <span class="badge">PRO CAD</span></a>
         <button type="button" class="mobile-panel-toggle" onclick="App.alternarPainel()">Opções</button>
         <div class="header-actions">
             <button id="btn-dark-mode" class="btn-outline-primary" type="button">TEMA</button>
@@ -248,7 +248,29 @@
             </div>
 
             <div class="panel-section">
-                <div class="section-header"><h3>8. Piscina</h3></div>
+                <div class="section-header"><h3>8. Pérgola ligada à casa</h3></div>
+                <label for="pergola-casa">Adicionar pérgola ligada</label>
+                <select id="pergola-casa" class="custom-select js-auto-update">
+                    <option value="nenhuma" selected>Sem pérgola ligada</option>
+                    <option value="frente">Ligada à fachada da frente</option>
+                    <option value="tras">Ligada às traseiras</option>
+                    <option value="esquerda">Ligada à lateral esquerda</option>
+                    <option value="direita">Ligada à lateral direita</option>
+                </select>
+                <div class="conditional" data-show-when="pergola-casa:frente,tras,esquerda,direita">
+                    <div class="assist-box">
+                        <strong>Pérgola automática:</strong>
+                        <span>Fica encostada à parede escolhida da casa, sem precisar de colocar janelas/portas manuais.</span>
+                    </div>
+                    <div class="mini-action-grid">
+                        <button type="button" class="btn-action" onclick="App.alternarDimensoesExteriores()">Alterar dimensões</button>
+                        <button type="button" class="btn-action" data-tool="pergola_casa">Colocar no 3D</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-header"><h3>9. Piscina</h3></div>
                 <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="piscina" class="js-auto-update"><span class="slider"></span></label><span class="toggle-label">Adicionar piscina</span></div>
                 <div class="conditional" data-show-when="piscina:true">
                     <div class="form-row">
@@ -273,7 +295,7 @@
                 <label for="churrasco-profundidade">Zona churrasco profundidade</label><input type="number" id="churrasco-profundidade" class="custom-input js-auto-update" value="2.5" min="2" max="10" step="0.5">
                 <div class="form-row"><div class="form-group half"><label for="varanda-largura">Varanda largura</label><input type="number" id="varanda-largura" class="custom-input js-auto-update" value="3.2" min="1.6" max="10" step="0.25"></div><div class="form-group half"><label for="varanda-profundidade">Varanda profundidade</label><input type="number" id="varanda-profundidade" class="custom-input js-auto-update" value="1.35" min="0.7" max="3.5" step="0.1"></div></div>
                 <div class="form-row"><div class="form-group half"><label for="pavimento-largura">Pavimento largura</label><input type="number" id="pavimento-largura" class="custom-input js-auto-update" value="5" min="1" max="25" step="0.5"></div><div class="form-group half"><label for="pavimento-profundidade">Pavimento profundidade</label><input type="number" id="pavimento-profundidade" class="custom-input js-auto-update" value="3" min="1" max="25" step="0.5"></div></div>
-                <div class="form-row"><div class="form-group half"><label for="caminho-largura">Caminho largura</label><input type="number" id="caminho-largura" class="custom-input js-auto-update" value="1.4" min="0.6" max="5" step="0.1"></div><div class="form-group half"><label for="caminho-comprimento">Caminho comprimento</label><input type="number" id="caminho-comprimento" class="custom-input js-auto-update" value="6" min="1" max="35" step="0.5"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="caminho-largura">Caminho largura</label><input type="number" id="caminho-largura" class="custom-input js-auto-update" value="1.15" min="0.5" max="5" step="0.1"></div><div class="form-group half"><label for="caminho-comprimento">Caminho comprimento</label><input type="number" id="caminho-comprimento" class="custom-input js-auto-update" value="4.5" min="1" max="35" step="0.5"></div></div>
                 <div class="form-row"><div class="form-group half"><label for="anexo-extra-largura">Anexo livre largura</label><input type="number" id="anexo-extra-largura" class="custom-input js-auto-update" value="6" min="2.5" max="30" step="0.5"></div><div class="form-group half"><label for="anexo-extra-profundidade">Anexo livre profundidade</label><input type="number" id="anexo-extra-profundidade" class="custom-input js-auto-update" value="4.2" min="2.5" max="25" step="0.5"></div></div>
                 <div class="form-row"><div class="form-group half"><label for="anexo-extra-altura">Anexo livre altura</label><input type="number" id="anexo-extra-altura" class="custom-input js-auto-update" value="2.75" min="2.1" max="4.5" step="0.1"></div><div class="form-group half"><label for="anexo-extra-telhado">Telhado anexo livre</label><select id="anexo-extra-telhado" class="custom-select js-auto-update"><option value="plano">Plano</option><option value="uma_agua" selected>Uma água</option><option value="duas_aguas">Duas águas</option><option value="beiral">Telha com beiral</option><option value="sandwich">Painel sandwich</option></select></div></div>
             </div>
@@ -304,10 +326,11 @@
                     <button type="button" data-tool-category="natureza" title="Árvores, plantas e pedras">♣<span>Natureza</span></button>
                     <button type="button" data-tool-category="decoracao" title="Decoração exterior">◆<span>Decoração</span></button>
                     <button type="button" data-tool-category="mover" title="Mover elementos">↔<span>Mover</span></button>
-                    <button type="button" data-tool-category="eliminar" title="Eliminar elementos">×<span>Eliminar</span></button>
+                    <button type="button" data-tool-category="eliminar" title="Borracha: eliminar um extra de cada vez">🧽<span>Borracha</span></button>
                 </div>
                 <div class="canvas-tool-palette" id="ferramentas-3d-palette">
                     <div class="tool-palette-hint">R = rodar | WASD/setas = ajustar posição | Shift = subir | Ctrl = descer | Verde = OK | Vermelho = colisão</div>
+                    <button type="button" id="btn-colisao-livre" class="free-collision-toggle" onclick="App.alternarColisaoLivre()">Colisões: ON</button>
 
                     <div class="tool-panel" data-tool-panel="chao">
                         <button type="button" data-tool="pavimento">Pavimento</button>
@@ -318,10 +341,9 @@
 
                     <div class="tool-panel" data-tool-panel="construcao">
                         <button type="button" data-tool="anexo_extra">Anexo livre</button>
-                        <button type="button" data-tool="pergola">Pérgola</button>
+                        <button type="button" data-tool="pergola">Pérgola livre</button>
+                        <button type="button" data-tool="pergola_casa">Pérgola ligada à casa</button>
                         <button type="button" data-tool="churrasqueira">Churrasqueira</button>
-                        <button type="button" data-tool="janela_extra">Janela</button>
-                        <button type="button" data-tool="porta_extra">Porta</button>
                         <button type="button" data-tool="varanda_extra">Varanda</button>
                         <button type="button" data-tool="chamine">Chaminé</button>
                         <button type="button" onclick="App.alternarDimensoesExteriores()">Dimensões</button>
@@ -346,12 +368,14 @@
                     </div>
 
                     <div class="tool-panel" data-tool-panel="eliminar">
-                        <button type="button" data-tool="apagar_extra">Apagar 1 extra</button>
-                        <button type="button" class="danger" onclick="App.limparManuais()">Limpar extras</button>
+                        <button type="button" data-tool="apagar_extra">🧽 Borracha: apagar 1 extra</button>
+                        <div class="tool-palette-hint">Clique num extra para apagar só esse elemento.</div>
                     </div>
                 </div>
             </div>
             <div class="hud-card"><span>Área total</span><strong id="hud-area">0 m²</strong><span>Estimativa</span><strong id="hud-preco">0 €</strong></div>
+            <button type="button" class="collision-float" data-free-collision-toggle>Colisões: ON</button>
+            <button type="button" class="delete-all-float" onclick="App.limparManuais()">Eliminar tudo</button>
             <div class="mobile-budget-bar">
                 <div><span>Área</span><strong id="mobile-hud-area">0 m²</strong></div>
                 <div><span>Estimativa</span><strong id="mobile-hud-preco">0 €</strong></div>
