@@ -2,107 +2,88 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador Básico - R.F. CARVALHO</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Simulador simples de obra R.F. Carvalho.">
+    <title>Simulador Simples - R.F. CARVALHO</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2322c55e'/><text x='50' y='67' text-anchor='middle' font-size='55'>🏗️</text></svg>">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <link rel="stylesheet" href="CSS/style.css">
 </head>
 <body data-mode="simples">
-
-    <div id="loading-screen">
-        <div class="spinner"></div>
-        <p class="loading-text">A iniciar Simulador Básico...</p>
-    </div>
+    <div id="loading-screen"><div class="loader-cad"></div><p class="loading-text">A iniciar simulador...</p></div>
 
     <header class="app-header">
-        <div class="logo-container">
-            <span class="logo-icon">🏗️</span>
-            R.F. CARVALHO 
-            <span class="badge badge-simples">SIMPLES</span>
-        </div>
+        <a href="index.php" class="logo-container logo-link"><span class="logo-icon">🏗️</span> R.F. CARVALHO <span class="badge badge-simples">SIMPLES</span></a>
         <div class="header-actions">
-            <button id="btn-dark-mode" class="btn-icon" title="Modo Noturno">🌙</button>
-            <a href="simulador-pro.php" class="btn-outline-primary">Alternar para PRO</a>
-            <a href="index.php" class="btn-outline-danger">Sair do Editor</a>
+            <button id="btn-dark-mode" class="btn-outline-primary" type="button">TEMA</button>
+            <a href="simulador-pro.php" class="btn-outline-primary">MODO PRO</a>
+            <a href="index.php" class="btn-outline-danger">SAIR</a>
         </div>
     </header>
 
     <main class="app-workspace">
         <aside class="control-panel scrollable-y">
-            
-            <div class="panel-section feature-section">
-                <div class="section-header">
-                    <h3>A Base do Seu Sonho</h3>
-                </div>
-                
-                <label for="tipo">O que procura construir?</label>
-                <select id="tipo" class="custom-select" onchange="App.atualizarInterface(); App.atualizarGeometria()">
-                    <option value="moradia">Uma Casa (Moradia)</option>
-                    <option value="predio">Um Prédio (Multifamiliar)</option>
-                </select>
+            <div class="panel-title-box">
+                <span class="eyebrow">Modo rápido</span>
+                <h1>Simulação simples</h1>
+                <p>Use para uma estimativa inicial sem excesso de opções técnicas.</p>
+            </div>
 
+            <div class="panel-section">
+                <div class="section-header"><h3>1. Construção</h3></div>
+                <label for="tipo">Tipo de construção</label>
+                <select id="tipo" class="custom-select js-auto-update">
+                    <option value="moradia" selected>Moradia</option>
+                    <option value="vivenda">Vivendas geminadas</option>
+                    <option value="predio">Prédio / bloco</option>
+                </select>
+                <div class="conditional" data-show-when="tipo:vivenda">
+                    <div class="form-row">
+                        <div class="form-group half"><label for="vivendas-qtd">Nº vivendas</label><input type="number" id="vivendas-qtd" class="custom-input js-auto-update" value="2" min="2" max="8"></div>
+                        <div class="form-group half"><label for="vivendas-disposicao">Disposição</label><select id="vivendas-disposicao" class="custom-select js-auto-update"><option value="geminadas">Geminadas</option><option value="banda">Em banda</option><option value="separadas">Separadas</option></select></div>
+                    </div>
+                </div>
                 <div class="form-row">
-                    <div class="form-group half">
-                        <label for="area">Área (m²):</label>
-                        <input type="number" id="area" class="custom-input" value="120" min="50" onchange="App.atualizarGeometria()">
-                    </div>
-                    <div class="form-group half">
-                        <label for="andares">Nº Andares:</label>
-                        <input type="number" id="andares" class="custom-input" value="1" min="1" onchange="App.atualizarGeometria()">
-                    </div>
+                    <div class="form-group half"><label for="area">Área base (m²)</label><input type="number" id="area" class="custom-input js-auto-update" value="120" min="50" max="800" step="5"></div>
+                    <div class="form-group half"><label for="andares">Pisos</label><input type="number" id="andares" class="custom-input js-auto-update" value="1" min="1" max="4"></div>
                 </div>
             </div>
 
             <div class="panel-section">
-                <div class="section-header">
-                    <h3>Visual e Exteriores</h3>
-                </div>
-
-                <label for="telhado">Estilo de Cobertura:</label>
-                <select id="telhado" class="custom-select" onchange="App.atualizarGeometria()">
-                    <option value="plano">Telhado Plano (Moderno)</option>
-                    <option value="inclinado">Telhado em Telha (Clássico)</option>
+                <div class="section-header"><h3>2. Exterior</h3></div>
+                <label for="telhado">Telhado</label>
+                <select id="telhado" class="custom-select js-auto-update">
+                    <option value="plano" selected>Plano</option>
+                    <option value="uma_agua">Uma água</option>
+                    <option value="duas_aguas">Duas águas</option>
+                    <option value="quatro_aguas">Quatro águas</option>
+                    <option value="beiral">Telha com beiral</option>
                 </select>
-
-                <label for="garagem">Precisa de Garagem?</label>
-                <select id="garagem" class="custom-select" onchange="App.atualizarGeometria()">
-                    <option value="nenhuma">Não preciso de garagem fechada</option>
-                    <option value="esquerda">Sim, encostada à esquerda da casa</option>
-                    <option value="direita">Sim, encostada à direita da casa</option>
-                </select>
-
-                <div class="toggle-group" style="margin-top: 25px;">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="piscina" onchange="App.atualizarGeometria()">
-                        <span class="slider"></span>
-                    </label>
-                    <span class="toggle-label">Gostaria de uma Piscina Exterior?</span>
+                <div class="form-row">
+                    <div class="form-group half"><label for="garagem">Garagem</label><select id="garagem" class="custom-select js-auto-update"><option value="nenhuma" selected>Sem garagem</option><option value="integrada">No mesmo edifício</option><option value="colada_esq">Anexa esquerda</option><option value="colada_dir">Anexa direita</option><option value="subterranea">Subterrânea só orçamento</option></select></div>
+                    <div class="form-group half conditional" data-show-when="garagem:integrada,colada_esq,colada_dir"><label for="garagem-portoes">Portões</label><input type="number" id="garagem-portoes" class="custom-input js-auto-update" value="1" min="1" max="3"></div>
                 </div>
-
-                <div class="toggle-group">
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="pergola" onchange="App.atualizarGeometria()">
-                        <span class="slider"></span>
-                    </label>
-                    <span class="toggle-label">Criar Alpendre Coberto (Traseiras)</span>
+                <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="piscina" class="js-auto-update"><span class="slider"></span></label><span class="toggle-label">Adicionar piscina</span></div>
+                <div class="conditional" data-show-when="piscina:true">
+                    <div class="form-row">
+                        <div class="form-group half"><label for="posicao-piscina">Posição</label><select id="posicao-piscina" class="custom-select js-auto-update"><option value="tras" selected>Traseiras</option><option value="frente">Frente</option><option value="esquerda">Esquerda</option><option value="direita">Direita</option></select></div>
+                        <div class="form-group half"><label for="piscina-comprimento">Comp. (m)</label><input type="number" id="piscina-comprimento" class="custom-input js-auto-update" value="8" min="4" max="18" step="0.5"></div>
+                    </div>
                 </div>
             </div>
 
-            <button class="btn-success-massive" onclick="App.calcularOrcamento()">
-                <span>Calcular Estimativa Simples</span>
-            </button>
-            
-            <div id="resultado-box" class="resultado">
-                <h3>Total Estimado: <br><span id="valor-total" class="highlight-price">0,00 €</span></h3>
-                <p id="detalhes-descritivos"></p>
-                <div class="disclaimer-text">* Valor indicativo. O preço final depende da escolha rigorosa de materiais, orografia real do terreno e taxas de licenciamento.</div>
+            <div class="panel-section terms-section">
+                <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="termos-responsabilidade"><span class="slider"></span></label><span class="toggle-label">Aceito que a estimativa é indicativa e não substitui projeto técnico/orçamento formal.</span></div>
+                <button class="btn-success-massive" type="button" onclick="App.calcularOrcamento()">Calcular estimativa</button>
             </div>
         </aside>
-        
+
         <section class="viewport-container">
             <div id="canvas-container"></div>
+            <div class="hud-card"><span>Área total</span><strong id="hud-area">0 m²</strong><span>Estimativa</span><strong id="hud-preco">0 €</strong></div>
+            <div id="modal-sistema" class="modal-backdrop"></div>
+            <div id="modal-orcamento" class="modal-backdrop"></div>
         </section>
     </main>
 

@@ -2,135 +2,108 @@
 <html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R.F. CARVALHO - Construção e Engenharia</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="R.F. CARVALHO - Simulador de construção para moradias, vivendas, anexos, garagem e orçamento estimativo.">
+    <title>R.F. CARVALHO - Simulador de Construção</title>
     <link rel="stylesheet" href="CSS/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2322c55e'/><text x='50' y='67' text-anchor='middle' font-size='55'>🏗️</text></svg>">
 </head>
-<body class="pagina-inicial">
-
-    <header class="header-index">
-        <div class="logo-container">
-            <span class="logo-icon">🏗️</span> R.F. CARVALHO
-        </div>
-        <nav class="nav-principal">
+<body class="pagina-inicial landing-light">
+    <header class="site-header">
+        <a href="index.php" class="brand-link" aria-label="Página inicial R.F. Carvalho">
+            <span class="brand-mark">🏗️</span>
+            <span class="brand-text">R.F. CARVALHO</span>
+        </a>
+        <button type="button" class="mobile-menu-btn" id="btn-menu" aria-label="Abrir menu">☰</button>
+        <nav class="site-nav" id="site-nav">
             <a href="#inicio">Início</a>
-            <a href="#sobre-nos">Sobre Nós</a>
+            <a href="#simulador">Simulador</a>
+            <a href="#vantagens">Vantagens</a>
             <a href="#contactos">Contactos</a>
+            <button id="btn-dark-mode" class="btn-ghost" type="button">Tema</button>
         </nav>
-        <div class="auth-buttons">
-            <button id="btn-dark-mode" class="btn-icon" title="Alternar Tema">🌙</button>
-            <button class="btn-login" onclick="abrirModalLogin()">Área de Cliente</button>
-        </div>
     </header>
 
-    <section id="inicio" class="hero">
-        <div class="hero-text">
-            <h1>Construímos a sua visão com precisão e rigor</h1>
-            <p>Garantimos a qualidade, a solidez e a transparência que a sua obra exige. De Cabeceiras de Basto para o país, projetamos o futuro. Teste as suas ideias antes de avançar com o nosso simulador arquitetónico em 3D.</p>
-            <div class="hero-botoes">
-                <a href="simulador-simples.php" class="btn-cta">Simulador Básico</a>
-                <a href="simulador-pro.php" class="btn-cta-outline">Modo Engenharia (PRO)</a>
+    <main>
+        <section id="inicio" class="landing-hero">
+            <div class="landing-copy">
+                <p class="eyebrow">Construção Civil • Engenharia • Simulação</p>
+                <h1>Simule a sua obra antes de avançar.</h1>
+                <p class="hero-lead">Ferramenta independente para testar áreas, tipologias, garagem, anexos, piscina, muros, terreno e uma estimativa inicial de obra.</p>
+                <div class="hero-actions">
+                    <a href="simulador-simples.php" class="btn-primary-green">Começar simples</a>
+                    <a href="simulador-pro.php" class="btn-secondary-green">Abrir modo PRO</a>
+                </div>
+                <div class="trust-row">
+                    <span>Orçamento indicativo</span>
+                    <span>Visualização 3D</span>
+                    <span>Exportação XML</span>
+                </div>
             </div>
-        </div>
-        <div class="hero-image">
-            <img src="https://images.unsplash.com/photo-1503387762-592deb58ef4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Projeto de construção R.F. Carvalho">
-        </div>
-    </section>
 
-    <section id="sobre-nos" class="sobre-nos-section">
-        <div class="container">
-            <div class="sobre-conteudo">
-                <h2>A Nossa História</h2>
-                <div class="linha-decorativa"></div>
-                <p>A <strong>R.F. CARVALHO</strong> nasceu da paixão pela engenharia e pelo detalhe. Com raízes sólidas, a nossa missão é elevar os padrões da construção civil em Portugal. Trabalhamos diariamente para transformar projetos de papel em estruturas de excelência, onde cada pilar reflete o nosso compromisso com a durabilidade e a estética.</p>
-                <p>O nosso foco não é apenas erguer paredes, mas sim edificar lares e espaços comerciais que resistam ao teste do tempo. Aliamos a mestria da construção tradicional às mais avançadas tecnologias de simulação 3D, garantindo que o cliente tem total controlo sobre o orçamento e o design antes da primeira escavação.</p>
-                
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <h3>100%</h3>
-                        <span>Rigor Orçamental</span>
+            <div class="hero-window" aria-hidden="true">
+                <div class="window-dots"><span></span><span></span><span></span></div>
+                <div class="illustration-scene">
+                    <div class="hill-back"></div>
+                    <div class="mini-house">
+                        <div class="mini-wall"></div>
+                        <div class="mini-garage"></div>
+                        <div class="mini-door"></div>
+                        <div class="mini-window w1"></div>
+                        <div class="mini-window w2"></div>
+                        <div class="mini-window w3"></div>
+                        <div class="mini-roof"></div>
                     </div>
-                    <div class="stat-box">
-                        <h3>3D</h3>
-                        <span>Prototipagem Realista</span>
-                    </div>
-                    <div class="stat-box">
-                        <h3>Pro</h3>
-                        <span>Acompanhamento Técnico</span>
-                    </div>
+                    <div class="hill-front"></div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="contactos" class="contactos-section">
-        <div class="container">
-            <h2>Fale Connosco</h2>
-            <p class="contactos-sub">Estamos prontos para analisar o seu projeto. Entre em contacto direto com a nossa equipa.</p>
-            
-            <div class="contactos-grid">
-                <div class="contacto-card">
-                    <div class="icone-contacto">📞</div>
-                    <h4>Telemóvel</h4>
-                    <p><a href="tel:+351966174132">+351 966 174 132</a></p>
-                </div>
-                <div class="contacto-card">
-                    <div class="icone-contacto">✉️</div>
-                    <h4>E-mail</h4>
-                    <p><a href="mailto:r.f.carvalho.2520@gmail.com">r.f.carvalho.2520@gmail.com</a></p>
-                </div>
-                <div class="contacto-card">
-                    <div class="icone-contacto">📸</div>
-                    <h4>Instagram</h4>
-                    <p><a href="https://instagram.com/rfca_rvalho" target="_blank">@rfca_rvalho</a></p>
-                </div>
+        <section id="simulador" class="mode-section">
+            <div class="section-title-center">
+                <p class="eyebrow">Escolha o modo</p>
+                <h2>Do rascunho rápido ao estudo completo</h2>
             </div>
-        </div>
-    </section>
+            <div class="mode-grid">
+                <a class="mode-card" href="simulador-simples.php">
+                    <span class="mode-icon">🏠</span>
+                    <h3>Simulador simples</h3>
+                    <p>Para uma primeira ideia: área, pisos, telhado, garagem, piscina e estimativa básica.</p>
+                    <strong>Abrir modo simples →</strong>
+                </a>
+                <a class="mode-card featured" href="simulador-pro.php">
+                    <span class="mode-icon">📐</span>
+                    <h3>Modo PRO</h3>
+                    <p>Inclui terreno, muros, anexos, vivendas geminadas, XML, elementos manuais e relatório.</p>
+                    <strong>Abrir modo PRO →</strong>
+                </a>
+            </div>
+        </section>
+
+        <section id="vantagens" class="features-section">
+            <div class="feature-item"><strong>Terreno e lote</strong><span>Controla área, posição da casa, vedação e acessos.</span></div>
+            <div class="feature-item"><strong>Construção</strong><span>Moradia, vivendas geminadas/em banda/separadas e prédio.</span></div>
+            <div class="feature-item"><strong>Orçamento</strong><span>Valores indicativos por rubricas, com termos de responsabilidade.</span></div>
+            <div class="feature-item"><strong>Exportação</strong><span>Guarda e transporta simulações em XML.</span></div>
+        </section>
+
+        <section id="contactos" class="contact-section">
+            <div>
+                <p class="eyebrow">Contacto</p>
+                <h2>Fale connosco para transformar a simulação num projeto real.</h2>
+            </div>
+            <div class="contact-cards">
+                <a href="tel:+351966174132">📞 +351 966 174 132</a>
+                <a href="mailto:r.f.carvalho.2520@gmail.com">✉️ r.f.carvalho.2520@gmail.com</a>
+                <a href="https://instagram.com/rfca_rvalho" target="_blank" rel="noopener">📸 @rfca_rvalho</a>
+            </div>
+        </section>
+    </main>
 
     <footer class="footer-principal">
-        <p>&copy; 2026 R.F. CARVALHO. Todos os direitos reservados. Sede: Cabeceiras de Basto, Braga.</p>
+        <p>© 2026 R.F. CARVALHO. Simulador com valores meramente indicativos.</p>
     </footer>
 
-    <!-- Modal Área de Cliente -->
-    <div id="modal-login" class="modal-backdrop">
-        <div class="modal-content modal-pequena">
-            <div class="modal-header">
-                <h2>Área de Cliente</h2>
-                <button onclick="fecharModalLogin()" class="btn-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="color: var(--text-muted); margin-bottom: 20px;">Aceda aos seus orçamentos e simulações 3D.</p>
-                <form action="#" method="POST" class="login-form">
-                    <input type="email" placeholder="O seu Email" required class="custom-input">
-                    <input type="password" placeholder="Palavra-passe" required class="custom-input">
-                    <button type="button" class="btn-primary full-width">Entrar no Portal</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const btnDarkMode = document.getElementById('btn-dark-mode');
-        if(localStorage.getItem('theme') === 'dark'){
-            document.body.classList.add('dark-mode');
-            if(btnDarkMode){ btnDarkMode.innerText = '☀️'; }
-        }
-        if(btnDarkMode){
-            btnDarkMode.addEventListener('click', function(){
-                document.body.classList.toggle('dark-mode');
-                if(document.body.classList.contains('dark-mode')){
-                    localStorage.setItem('theme', 'dark');
-                    btnDarkMode.innerText = '☀️';
-                }else{
-                    localStorage.setItem('theme', 'light');
-                    btnDarkMode.innerText = '🌙';
-                }
-            });
-        }
-        function abrirModalLogin(){ document.getElementById('modal-login').classList.add('ativo'); }
-        function fecharModalLogin(){ document.getElementById('modal-login').classList.remove('ativo'); }
-    </script>
+    <script src="JS/main.js"></script>
 </body>
 </html>
