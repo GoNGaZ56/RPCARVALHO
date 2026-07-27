@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="R.F. CARVALHO - Simulador de construção para moradias, vivendas, anexos, garagem e orçamento estimativo.">
+    <title>R.F. CARVALHO - Simulador de Construção</title>
+    <link rel="stylesheet" href="CSS/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2322c55e'/><text x='50' y='67' text-anchor='middle' font-size='55'>🏗️</text></svg>">
+</head>
+<body class="pagina-inicial landing-light">
+    <header class="site-header">
+        <a href="index.html" class="brand-link" aria-label="Página inicial R.F. Carvalho">
+            <span class="brand-mark">🏗️</span>
+            <span class="brand-text">R.F. CARVALHO</span>
+        </a>
+        <button type="button" class="mobile-menu-btn" id="btn-menu" aria-label="Abrir menu">☰</button>
+        <nav class="site-nav" id="site-nav">
+            <a href="#inicio">Início</a>
+            <a href="#simulador">Simulador</a>
+            <a href="#vantagens">Vantagens</a>
+            <a href="#contactos">Contactos</a>
+            <button id="btn-dark-mode" class="btn-ghost" type="button">Tema</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="inicio" class="landing-hero">
+            <div class="landing-copy">
+                <p class="eyebrow">Construção Civil • Engenharia • Simulação</p>
+                <h1>Simule a sua obra antes de avançar.</h1>
+                <p class="hero-lead">Ferramenta independente para testar áreas, tipologias, garagem, anexos, piscina, muros, terreno e uma estimativa inicial de obra.</p>
+                <div class="hero-actions">
+                    <a href="simulador-simples.html" class="btn-primary-green">Começar simples</a>
+                    <a href="simulador-pro.html" class="btn-secondary-green">Abrir modo PRO</a>
+                </div>
+                <div class="trust-row">
+                    <span>Orçamento indicativo</span>
+                    <span>Visualização 3D</span>
+                    <span>Exportação XML</span>
+                </div>
+            </div>
+
+            <div class="hero-window" aria-hidden="true">
+                <div class="window-dots"><span></span><span></span><span></span></div>
+                <div class="illustration-scene">
+                    <div class="hill-back"></div>
+                    <div class="mini-house">
+                        <div class="mini-wall"></div>
+                        <div class="mini-garage"></div>
+                        <div class="mini-door"></div>
+                        <div class="mini-window w1"></div>
+                        <div class="mini-window w2"></div>
+                        <div class="mini-window w3"></div>
+                        <div class="mini-roof"></div>
+                    </div>
+                    <div class="hill-front"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="simulador" class="mode-section">
+            <div class="section-title-center">
+                <p class="eyebrow">Escolha o modo</p>
+                <h2>Do rascunho rápido ao estudo completo</h2>
+            </div>
+            <div class="mode-grid">
+                <a class="mode-card" href="simulador-simples.html">
+                    <span class="mode-icon">🏠</span>
+                    <h3>Simulador simples</h3>
+                    <p>Para uma primeira ideia: área, pisos, telhado, garagem, piscina e estimativa básica.</p>
+                    <strong>Abrir modo simples →</strong>
+                </a>
+                <a class="mode-card featured" href="simulador-pro.html">
+                    <span class="mode-icon">📐</span>
+                    <h3>Modo PRO</h3>
+                    <p>Inclui terreno, muros, anexos, vivendas geminadas, XML, elementos manuais e relatório.</p>
+                    <strong>Abrir modo PRO →</strong>
+                </a>
+            </div>
+        </section>
+
+        <section id="vantagens" class="features-section">
+            <div class="feature-item"><strong>Terreno e lote</strong><span>Controla área, posição da casa, vedação e acessos.</span></div>
+            <div class="feature-item"><strong>Construção</strong><span>Moradia, vivendas geminadas/em banda/separadas e prédio.</span></div>
+            <div class="feature-item"><strong>Orçamento</strong><span>Valores indicativos por rubricas, com termos de responsabilidade.</span></div>
+            <div class="feature-item"><strong>Exportação</strong><span>Guarda e transporta simulações em XML.</span></div>
+        </section>
+
+        <section id="contactos" class="contact-section">
+            <div>
+                <p class="eyebrow">Contacto</p>
+                <h2>Fale connosco para transformar a simulação num projeto real.</h2>
+            </div>
+            <div class="contact-cards">
+                <a href="tel:+351966174132">📞 +351 966 174 132</a>
+                <a href="mailto:r.f.carvalho.2520@gmail.com">✉️ r.f.carvalho.2520@gmail.com</a>
+                <a href="https://instagram.com/rfca_rvalho" target="_blank" rel="noopener">📸 @rfca_rvalho</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer-principal">
+        <p>© 2026 R.F. CARVALHO. Simulador com valores meramente indicativos.</p>
+    </footer>
+
+    <script src="JS/main.js"></script>
+</body>
+</html>
