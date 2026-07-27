@@ -52,5 +52,15 @@ body[data-mode].dark-theme{background:#06140b}
 }
 
 /* Ferramentas 3D flutuantes: mantém o painel esquerdo livre para garagem/terreno/cobertura */
-.canvas-tools{position:absolute;left:22px;top:22px;z-index:22;display:flex;align-items:flex-start;gap:10px;pointer-events:none}.canvas-tool-main{width:52px;height:52px;border-radius:18px;border:1px solid rgba(187,247,208,.22);background:linear-gradient(135deg,#22c55e,#86efac);color:#052e16;font-size:1.55rem;font-weight:1000;box-shadow:0 18px 42px rgba(0,0,0,.28);cursor:pointer;pointer-events:auto}.canvas-tool-main.ativo,.canvas-tools.aberto .canvas-tool-main{outline:3px solid rgba(134,239,172,.32)}.canvas-tool-palette{display:none;width:min(320px,calc(100vw - 105px));grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-radius:20px;background:rgba(6,20,11,.88);border:1px solid rgba(187,247,208,.18);backdrop-filter:blur(14px);box-shadow:0 20px 70px rgba(0,0,0,.36);pointer-events:auto}.canvas-tools.aberto .canvas-tool-palette{display:grid}.canvas-tool-palette button{min-height:40px;border-radius:13px;border:1px solid rgba(187,247,208,.14);background:rgba(255,255,255,.05);color:#eafff0;font-weight:900;cursor:pointer;padding:0 10px}.canvas-tool-palette button:hover,.canvas-tool-palette button.ativo{border-color:#22c55e;background:rgba(34,197,94,.16);color:#86efac}.canvas-tool-palette button.danger{grid-column:1 / -1;color:#ffabab;border-color:rgba(220,38,38,.4)}
+.canvas-tools{position:absolute;left:22px;top:22px;z-index:22;display:flex;align-items:flex-start;gap:10px;pointer-events:none}.canvas-tool-main{width:52px;height:52px;border-radius:18px;border:1px solid rgba(187,247,208,.22);background:linear-gradient(135deg,#22c55e,#86efac);color:#052e16;font-size:1.55rem;font-weight:1000;box-shadow:0 18px 42px rgba(0,0,0,.28);cursor:pointer;pointer-events:auto}.canvas-tool-main.ativo,.canvas-tools.aberto .canvas-tool-main{outline:3px solid rgba(134,239,172,.32)}.canvas-tool-palette{display:none;width:min(340px,calc(100vw - 105px));max-height:min(72vh,640px);overflow:auto;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-radius:20px;background:rgba(6,20,11,.88);border:1px solid rgba(187,247,208,.18);backdrop-filter:blur(14px);box-shadow:0 20px 70px rgba(0,0,0,.36);pointer-events:auto}.canvas-tools.aberto .canvas-tool-palette{display:grid}.canvas-tool-palette button{min-height:40px;border-radius:13px;border:1px solid rgba(187,247,208,.14);background:rgba(255,255,255,.05);color:#eafff0;font-weight:900;cursor:pointer;padding:0 10px}.canvas-tool-palette button:hover,.canvas-tool-palette button.ativo{border-color:#22c55e;background:rgba(34,197,94,.16);color:#86efac}.canvas-tool-palette button.danger{grid-column:1 / -1;color:#ffabab;border-color:rgba(220,38,38,.4)}
 @media (max-width: 980px){.canvas-tools{left:12px;top:12px}.canvas-tool-main{width:48px;height:48px;border-radius:16px}.canvas-tool-palette{width:min(300px,calc(100vw - 76px));grid-template-columns:1fr}.hud-card{top:72px}}
+
+.tool-palette-hint{
+    grid-column:1 / -1;
+    font-size:11px;
+    color:rgba(226,255,235,.72);
+    padding:6px 8px;
+    border:1px dashed rgba(34,197,94,.35);
+    border-radius:10px;
+    background:rgba(9,45,26,.42);
+}

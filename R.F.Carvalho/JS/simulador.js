@@ -1,5 +1,5 @@
 /*
- * R.F. CARVALHO - Simulador Standalone V14
+ * R.F. CARVALHO - Simulador Standalone V19
  * Objetivo desta versão:
  * - Layout simples e responsivo.
  * - Sem alert()/confirm() nativos.
@@ -21,6 +21,7 @@ const App = (function(){
     let grupoLote = new THREE.Group();
     let grupoConstrucao = new THREE.Group();
     let grupoManuais = new THREE.Group();
+    let grupoPreview = new THREE.Group();
     let terrenoMesh = null;
     let loteMesh = null;
     let luzSol = null;
@@ -37,6 +38,9 @@ const App = (function(){
     let avisoEspacoAssinatura = '';
     let objetosOcupados = [];
     let manuais = [];
+    let ultimoPontoPreview = null;
+    let ultimoPontoTerreno = null;
+    let rotacoesFerramenta = {};
 
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 900;
     const QUALITY = isMobile ? 'mobile' : 'desktop';
@@ -62,6 +66,16 @@ const App = (function(){
         if(!el){ return !!def; }
         if(el.type === 'checkbox'){ return !!el.checked; }
         return el.value === '1' || el.value === 'true' || el.value === true;
+    }
+
+    function setValueIfExists(id, value){
+        const el = $(id);
+        if(el){ el.value = value; }
+    }
+
+    function getCfgNum(cfg, prop, def){
+        const v = cfg && isFinite(cfg[prop]) ? Number(cfg[prop]) : def;
+        return isFinite(v) ? v : def;
     }
 
     function log(msg, tipo){
@@ -183,6 +197,18 @@ const App = (function(){
             densidadeArvores: isSimples ? 'baixa' : safeValue('densidade-arvores', 'baixa'),
             tipo: safeValue('tipo', 'moradia'),
             estiloCasa: safeValue('estilo-casa', 'moderno'),
+            formatoCasa: safeValue('formato-casa', 'retangular'),
+            personalizarPisos: safeBool('personalizar-pisos', false),
+            paredeFrente: safeValue('parede-frente', 'auto'),
+            paredeTras: safeValue('parede-tras', 'auto'),
+            paredeEsq: safeValue('parede-esq', 'auto'),
+            paredeDir: safeValue('parede-dir', 'auto'),
+            piso1Largura: safeNumber('piso1-largura', 100, 55, 130),
+            piso1Profundidade: safeNumber('piso1-profundidade', 100, 55, 130),
+            piso2Largura: safeNumber('piso2-largura', 92, 45, 130),
+            piso2Profundidade: safeNumber('piso2-profundidade', 92, 45, 130),
+            piso3Largura: safeNumber('piso3-largura', 85, 40, 130),
+            piso3Profundidade: safeNumber('piso3-profundidade', 85, 40, 130),
             area: safeNumber('area', 120, 45, 2500),
             andares: safeInt('andares', 1, 1, 12),
             vivendasQtd: safeInt('vivendas-qtd', 2, 2, 8),
@@ -190,6 +216,7 @@ const App = (function(){
             garagem: safeValue('garagem', 'nenhuma'),
             garagemPortoes: safeInt('garagem-portoes', 1, 1, 4),
             garagemPortaLateral: safeBool('garagem-porta-lateral', true),
+            garagemTelhado: safeValue('garagem-telhado', 'uma_agua'),
             telhado: safeValue('telhado', 'plano'),
             orientacaoTelhado: safeValue('orientacao-telhado', 'frente_tras'),
             inclinacaoTelhado: safeValue('inclinacao-telhado', 'media'),
@@ -198,6 +225,8 @@ const App = (function(){
             anexos: isSimples ? 'nenhum' : safeValue('anexos', 'nenhum'),
             posicaoAnexo: safeValue('posicao-anexo', 'direita'),
             portasAnexo: safeInt('portas-anexo', 1, 0, 4),
+            anexoLargura: safeNumber('anexo-largura', 0, 0, 30),
+            anexoProfundidade: safeNumber('anexo-profundidade', 0, 0, 25),
             garagemAnexoPortoes: safeInt('garagem-anexo-portoes', 1, 1, 4),
             anexoTelhado: safeValue('anexo-telhado', 'uma_agua'),
             anexoManual: safeValue('anexo-manual', '0') === '1',
@@ -210,6 +239,24 @@ const App = (function(){
             piscinaManual: safeValue('piscina-manual', '0') === '1',
             piscinaX: safeNumber('piscina-x', 0, -10000, 10000),
             piscinaZ: safeNumber('piscina-z', 0, -10000, 10000),
+            climatizacao: safeValue('climatizacao', 'nenhuma'),
+            varandaLargura: safeNumber('varanda-largura', 3.2, 1.6, 10),
+            varandaProfundidade: safeNumber('varanda-profundidade', 1.35, .7, 3.5),
+            anexoExtraLargura: safeNumber('anexo-extra-largura', 6.0, 2.5, 30),
+            anexoExtraProfundidade: safeNumber('anexo-extra-profundidade', 4.2, 2.5, 25),
+            anexoExtraAltura: safeNumber('anexo-extra-altura', 2.75, 2.1, 4.5),
+            anexoExtraTelhado: safeValue('anexo-extra-telhado', 'uma_agua'),
+            pavimentoLargura: safeNumber('pavimento-largura', 5.0, 1, 25),
+            pavimentoProfundidade: safeNumber('pavimento-profundidade', 3.0, 1, 25),
+            caminhoLargura: safeNumber('caminho-largura', 1.4, .6, 5),
+            caminhoComprimento: safeNumber('caminho-comprimento', 6.0, 1, 35),
+            pergolaLargura: safeNumber('pergola-largura', 4.8, 2, 14),
+            pergolaProfundidade: safeNumber('pergola-profundidade', 3.3, 2, 10),
+            pergolaAltura: safeNumber('pergola-altura', 2.45, 2, 4),
+            deckLargura: safeNumber('deck-largura', 5.2, 2, 18),
+            deckProfundidade: safeNumber('deck-profundidade', 3.2, 2, 14),
+            churrascoLargura: safeNumber('churrasco-largura', 3.6, 2.5, 12),
+            churrascoProfundidade: safeNumber('churrasco-profundidade', 2.5, 2, 10),
             assimetria: safeBool('assimetria', false)
         };
         if(cfg.tipo === 'vivenda'){
@@ -431,6 +478,9 @@ const App = (function(){
         materiais.paredeModerna = materiais.parede;
         materiais.paredeTradicional = new THREE.MeshStandardMaterial({map:paredeTex, color:0xf3ead8, roughness:.82, metalness:.01});
         materiais.paredeRustica = new THREE.MeshStandardMaterial({map:betaoTex, color:0xd6c6aa, roughness:.92, metalness:0});
+        materiais.fachadaReboco = new THREE.MeshStandardMaterial({map:paredeTex, color:0xf6faf5, roughness:.78, metalness:.01});
+        materiais.fachadaPedra = new THREE.MeshStandardMaterial({map:betaoTex, color:0xb8b09f, roughness:.95, metalness:0});
+        materiais.fachadaMadeira = new THREE.MeshStandardMaterial({map:madeiraTex, color:0xc38345, roughness:.82, metalness:0});
         materiais.telheado = new THREE.MeshStandardMaterial({map:telhaTex, roughness:.72, metalness:.02, side:THREE.DoubleSide});
         materiais.telheadoEscuro = new THREE.MeshStandardMaterial({color:0x475569, map:betaoTex, roughness:.75, side:THREE.DoubleSide});
         materiais.betao = new THREE.MeshStandardMaterial({map:betaoTex, roughness:.9});
@@ -450,6 +500,11 @@ const App = (function(){
         materiais.preto = new THREE.MeshStandardMaterial({color:0x050706, roughness:.82});
         materiais.pedra = new THREE.MeshStandardMaterial({color:0x9ca3af, roughness:.9});
         materiais.solar = new THREE.MeshStandardMaterial({color:0x050a0f, roughness:.3, metalness:.6});
+        materiais.previewOk = new THREE.MeshStandardMaterial({color:0x22c55e, transparent:true, opacity:.38, roughness:.5, depthWrite:false});
+        materiais.previewBad = new THREE.MeshStandardMaterial({color:0xef4444, transparent:true, opacity:.42, roughness:.5, depthWrite:false});
+        materiais.fachadaVidro = new THREE.MeshStandardMaterial({color:0x9ff5c5, transparent:true, opacity:.55, roughness:.12, metalness:.15});
+        materiais.carro = new THREE.MeshStandardMaterial({color:0x1f2937, roughness:.45, metalness:.25});
+        materiais.chafariz = new THREE.MeshStandardMaterial({color:0xb8c4bd, roughness:.72, metalness:.04});
     }
 
     function disposeGroup(group){
@@ -474,6 +529,7 @@ const App = (function(){
         cena.add(grupoLote);
         cena.add(grupoConstrucao);
         cena.add(grupoManuais);
+        cena.add(grupoPreview);
 
         camara = new THREE.PerspectiveCamera(45, Math.max(1, holder.clientWidth) / Math.max(1, holder.clientHeight), .1, 800);
         camara.position.set(35, 32, 42);
@@ -511,6 +567,9 @@ const App = (function(){
         controlos.target.set(0, 0, 0);
 
         holder.addEventListener('pointerdown', onPointerDown, false);
+        holder.addEventListener('pointermove', onPointerMove, false);
+        holder.addEventListener('pointerleave', limparPreview, false);
+        holder.addEventListener('wheel', onWheelFerramenta, {passive:false});
         window.addEventListener('resize', onResize, false);
         return true;
     }
@@ -782,6 +841,7 @@ const App = (function(){
         criarGaragem(cfg, lote, fp, pos);
         criarAnexo(cfg, lote, fp, pos);
         criarPiscina(cfg, lote, fp, pos);
+        criarClimatizacao(cfg, lote, fp, pos);
         recriarManuais(cfg, lote);
         atualizarResumo(cfg);
         atualizarHUD(cfg);
@@ -842,21 +902,87 @@ const App = (function(){
         return materiais.paredeModerna || materiais.parede;
     }
 
+
+    function escalaPiso(cfg, piso){
+        if(!cfg.personalizarPisos){ return {w:1,d:1}; }
+        if(piso === 0){ return {w:cfg.piso1Largura/100, d:cfg.piso1Profundidade/100}; }
+        if(piso === 1){ return {w:cfg.piso2Largura/100, d:cfg.piso2Profundidade/100}; }
+        return {w:cfg.piso3Largura/100, d:cfg.piso3Profundidade/100};
+    }
+
+    function ajustarFormatoCasa(cfg, w, d){
+        if(cfg.formatoCasa === 'compacta'){ return {w:w*.88,d:d*.88}; }
+        if(cfg.formatoCasa === 'l'){ return {w:w*1.08,d:d*.92}; }
+        if(cfg.formatoCasa === 'u'){ return {w:w*1.12,d:d*.98}; }
+        return {w:w,d:d};
+    }
+
+    function materialFachada(valor, cfg){
+        if(valor === 'pedra'){ return materiais.fachadaPedra || materiais.pedra; }
+        if(valor === 'madeira'){ return materiais.fachadaMadeira || materiais.madeira; }
+        if(valor === 'vidro'){ return materiais.fachadaVidro || materiais.vidro; }
+        if(valor === 'reboco'){ return materiais.fachadaReboco || materiais.parede; }
+        return materialParede(cfg);
+    }
+
+    function criarFachadasPersonalizadas(cfg, w, d, x, z, yBase, pe){
+        if(!cfg.personalizarPisos){ return; }
+        const cy = yBase + pe/2 + .01;
+        addPlane(grupoConstrucao, w+.025, pe-.12, x, cy, z+d/2+.051, 0, materialFachada(cfg.paredeFrente, cfg), 'fachada-frente');
+        addPlane(grupoConstrucao, w+.025, pe-.12, x, cy, z-d/2-.051, Math.PI, materialFachada(cfg.paredeTras, cfg), 'fachada-tras');
+        addPlane(grupoConstrucao, d+.025, pe-.12, x-w/2-.051, cy, z, -Math.PI/2, materialFachada(cfg.paredeEsq, cfg), 'fachada-esq');
+        addPlane(grupoConstrucao, d+.025, pe-.12, x+w/2+.051, cy, z, Math.PI/2, materialFachada(cfg.paredeDir, cfg), 'fachada-dir');
+    }
+
     function construirEdificio(cfg, w, d, x, z, idx, pisos, tipo){
         const pe = tipo === 'predio' ? 3.05 : 3.0;
         const pisosCount = pisos || 1;
+        let roofW = w;
+        let roofD = d;
+        let roofX = x;
+        let roofZ = z;
         for(let p=0; p<pisosCount; p++){
-            let wp = w, dp = d, xp = x, zp = z;
-            if(cfg.assimetria && p > 0){ wp *= .82; dp *= .82; xp += w*.06; zp -= d*.06; }
+            let shape = ajustarFormatoCasa(cfg, w, d);
+            let wp = shape.w;
+            let dp = shape.d;
+            let xp = x;
+            let zp = z;
+            const esc = escalaPiso(cfg, p);
+            wp *= esc.w;
+            dp *= esc.d;
+            if(cfg.assimetria && p > 0){ wp *= .88; dp *= .88; xp += w*.04; zp -= d*.04; }
             const corpo = addBox(grupoConstrucao, wp, pe, dp, xp, pe/2 + p*pe, zp, materialParede(cfg), 'corpo');
             corpo.userData = {tipoObjeto:'fachada'};
+            criarFachadasPersonalizadas(cfg, wp, dp, xp, zp, p*pe, pe);
             addFrisos(wp, dp, xp, p*pe + .04, zp);
             criarAberturas(cfg, wp, dp, xp, zp, p, pe, tipo);
+            roofW = wp; roofD = dp; roofX = xp; roofZ = zp;
+            if(cfg.formatoCasa === 'l' && p === 0){
+                const aw = Math.max(3.4, w*.38), ad = Math.max(3.2, d*.38);
+                const ax = x + wp/2 - aw/2;
+                const az = z - dp/2 - ad/2 + .2;
+                addBox(grupoConstrucao, aw, pe, ad, ax, pe/2, az, materialParede(cfg), 'volume-l');
+                addPlane(grupoConstrucao, .9, 1.0, ax, 1.7, az-ad/2-.04, Math.PI, materiais.janela, 'janela-volume-l');
+                if(pisosCount === 1){ criarTelhado(cfg, aw, ad, ax, az, pe, 'volume-l'); }
+            }
+            if(cfg.formatoCasa === 'u' && p === 0){
+                const aw = Math.max(3.2, w*.28), ad = Math.max(3.0, d*.48);
+                const ux1 = x-wp/2+aw/2;
+                const ux2 = x+wp/2-aw/2;
+                const uz = z-dp/2-ad/2+.3;
+                addBox(grupoConstrucao, aw, pe, ad, ux1, pe/2, uz, materialParede(cfg), 'volume-u-esq');
+                addBox(grupoConstrucao, aw, pe, ad, ux2, pe/2, uz, materialParede(cfg), 'volume-u-dir');
+                if(pisosCount === 1){
+                    criarTelhado(cfg, aw, ad, ux1, uz, pe, 'volume-u-esq');
+                    criarTelhado(cfg, aw, ad, ux2, uz, pe, 'volume-u-dir');
+                }
+            }
         }
         const topY = pe * pisosCount;
-        criarTelhado(cfg, w, d, x, z, topY, tipo);
+        criarTelhado(cfg, roofW, roofD, roofX, roofZ, topY, tipo);
         if(cfg.garagem === 'integrada' && idx === 0){ criarPortoesNaFachada(cfg, x, z + d/2 + .035, topY, w, 'frente'); }
     }
+
 
     function addFrisos(w,d,x,y,z){
         addBox(grupoConstrucao, w+.45, .12, .25, x, y, z+d/2+.08, materiais.madeira, 'rodape-frontal');
@@ -1162,7 +1288,8 @@ const App = (function(){
             }
         }
         addBox(grupoConstrucao, w, h, d, x, h/2, z, materialParede(cfg), 'garagem-colada');
-        criarRoofUmaAgua(w+.45,d+.45,x,z,h+.03, .62, 'frente_tras', materiais.telheadoEscuro);
+        const cfgGaragemTelhado = Object.assign({}, cfg, {telhado: cfg.garagemTelhado || 'uma_agua', orientacaoTelhado:'frente_tras', inclinacaoTelhado:'baixa', paineis:false, claraboias:0});
+        criarTelhado(cfgGaragemTelhado, w, d, x, z, h, 'garagem');
         if(face === 'tras'){
             criarPortoesIndependentes(cfg.garagemPortoes, x, z - d/2 - .04, w, Math.PI);
         }else{
@@ -1184,12 +1311,17 @@ const App = (function(){
     }
 
     function dimsAnexo(cfg){
-        if(cfg.anexos === 'lazer'){ return {w:10, d:5.4, h:2.75}; }
-        if(cfg.anexos === 'oficina'){ return {w:Math.max(7, cfg.garagemAnexoPortoes*3.3 + 1.2), d:6.2, h:2.9}; }
-        if(cfg.anexos === 'garagem'){ return {w:Math.max(6.8, cfg.garagemAnexoPortoes*3.3 + 1.2), d:6.2, h:2.85}; }
-        if(cfg.anexos === 'arrumos'){ return {w:5.4, d:4.2, h:2.6}; }
-        return {w:0,d:0,h:0};
+        let base;
+        if(cfg.anexos === 'lazer'){ base = {w:10, d:5.4, h:2.75}; }
+        else if(cfg.anexos === 'oficina'){ base = {w:Math.max(7, cfg.garagemAnexoPortoes*3.3 + 1.2), d:6.2, h:2.9}; }
+        else if(cfg.anexos === 'garagem'){ base = {w:Math.max(6.8, cfg.garagemAnexoPortoes*3.3 + 1.2), d:6.2, h:2.85}; }
+        else if(cfg.anexos === 'arrumos'){ base = {w:5.4, d:4.2, h:2.6}; }
+        else{ base = {w:0,d:0,h:0}; }
+        if(cfg && cfg.anexoLargura > 0){ base.w = clamp(cfg.anexoLargura, 2.5, 30); }
+        if(cfg && cfg.anexoProfundidade > 0){ base.d = clamp(cfg.anexoProfundidade, 2.5, 25); }
+        return base;
     }
+
 
     function posElemento(cfg, lote, fp, posCasa, w, d, posicao, offset){
         const margem = 3.2;
@@ -1362,50 +1494,256 @@ const App = (function(){
         }
     }
 
-    function criarDeckManual(group, x, y, z, scale){
-        const w = 5.2 * (scale || 1), d = 3.2 * (scale || 1);
-        addBox(group, w, .12, d, x, y+.08, z, materiais.madeira, 'deck-manual');
+    function criarDeckManual(group, x, y, z, scale, item){
+        item = item || {};
+        const rot = item.rotY || 0;
+        const local = new THREE.Group();
+        local.position.set(x, y, z);
+        local.rotation.y = rot;
+        group.add(local);
+        const dim = manualDim('deck', item || {});
+        const w = dim.w * (scale || 1), d = dim.d * (scale || 1);
+        addBox(local, w, .12, d, 0, .08, 0, materiais.madeira, 'deck-manual');
         for(let i=-2;i<=2;i++){
-            addBox(group, .045, .04, d+.08, x + i*w/5, y+.17, z, materiais.betao, 'junta-deck');
+            addBox(local, .045, .04, d+.08, i*w/5, .17, 0, materiais.betao, 'junta-deck');
         }
     }
 
-    function criarPergolaManual(group, x, y, z, scale){
+
+    function criarPergolaManual(group, x, y, z, scale, item){
         scale = scale || 1;
-        const w = 4.8*scale, d = 3.3*scale, h = 2.45*scale;
-        const coords = [[-1,-1],[1,-1],[-1,1],[1,1]];
-        coords.forEach(function(c){ addBox(group,.18*scale,h,.18*scale,x+c[0]*w/2,y+h/2,z+c[1]*d/2,materiais.madeira,'pergola-pilar'); });
-        addBox(group,w+.35,.18,.20,x,y+h,z-d/2,materiais.madeira,'pergola-viga');
-        addBox(group,w+.35,.18,.20,x,y+h,z+d/2,materiais.madeira,'pergola-viga');
+        item = item || {};
+        const rot = item.rotY || 0;
+        const local = new THREE.Group();
+        local.position.set(x, y, z);
+        local.rotation.y = rot;
+        group.add(local);
+        const dim = manualDim('pergola', item);
+        const w = dim.w*scale, d = dim.d*scale, h = (dim.h || 2.45)*scale;
+        let coords = [[-1,-1],[1,-1],[-1,1],[1,1]];
+        if(item.attached){
+            // Em modo anexado a parede, a face junto à casa fica sem pilares para parecer colada/encostada.
+            coords = [[-1,1],[1,1]];
+        }
+        coords.forEach(function(c){ addBox(local,.18*scale,h,.18*scale,c[0]*w/2,h/2,c[1]*d/2,materiais.madeira,'pergola-pilar'); });
+        addBox(local,w+.35,.18,.20,0,h,-d/2,materiais.madeira,'pergola-viga-casa');
+        addBox(local,w+.35,.18,.20,0,h,d/2,materiais.madeira,'pergola-viga-exterior');
+        addBox(local,.20,.18,d+.35,-w/2,h,0,materiais.madeira,'pergola-viga-lateral');
+        addBox(local,.20,.18,d+.35,w/2,h,0,materiais.madeira,'pergola-viga-lateral');
+        if(item.attached){
+            addBox(local,w+.55,.16,.18,0,h+.03,-d/2-.08,materiais.madeira,'pergola-viga-iman-parede');
+        }
         for(let i=-3;i<=3;i++){
-            addBox(group,.12,.14,d+.55,x+i*w/6,y+h+.12,z,materiais.madeira,'pergola-ripa');
+            addBox(local,.12,.14,d+.55,i*w/6,h+.12,0,materiais.madeira,'pergola-ripa');
         }
     }
 
-    function criarChurrasqueiraManual(group, x, y, z, scale){
+
+    function criarChurrasqueiraManual(group, x, y, z, scale, item){
         scale = scale || 1;
-        addBox(group, 3.6*scale, .10, 2.5*scale, x, y+.07, z, materiais.betao, 'zona-churrasco-pavimento');
-        addBox(group, 1.0*scale, 1.05*scale, .62*scale, x-1.0*scale, y+.55*scale, z-.55*scale, materiais.pedra, 'churrasqueira-base');
-        addBox(group, .82*scale, .55*scale, .52*scale, x-1.0*scale, y+1.32*scale, z-.55*scale, materiais.pedra, 'churrasqueira-chamine');
-        addBox(group, .88*scale, .10*scale, .08*scale, x-1.0*scale, y+.82*scale, z-.23*scale, materiais.preto, 'grelha');
-        addBox(group, 1.8*scale, .72*scale, .55*scale, x+.8*scale, y+.38*scale, z-.55*scale, materiais.betao, 'bancada-churrasco');
-        criarPergolaManual(group, x+.55*scale, y, z+.42*scale, .72*scale);
+        item = item || {};
+        const rot = item.rotY || 0;
+        const local = new THREE.Group();
+        local.position.set(x, y, z);
+        local.rotation.y = rot;
+        group.add(local);
+        const dim = manualDim('churrasqueira', item);
+        const w = dim.w * scale, d = dim.d * scale;
+        addBox(local, w, .10, d, 0, .07, 0, materiais.betao, 'zona-churrasco-pavimento');
+        addBox(local, .95*scale, 1.05*scale, .62*scale, -w*.25, .55*scale, -d*.18, materiais.pedra, 'churrasqueira-base');
+        addBox(local, .78*scale, .55*scale, .52*scale, -w*.25, 1.32*scale, -d*.18, materiais.pedra, 'churrasqueira-chamine');
+        addBox(local, .88*scale, .10*scale, .08*scale, -w*.25, .82*scale, .04, materiais.preto, 'grelha');
+        addBox(local, Math.max(1.6,w*.40), .72*scale, .55*scale, w*.20, .38*scale, -d*.18, materiais.betao, 'bancada-churrasco');
+        criarPergolaManual(local, 0, 0, .25*scale, .72*scale, {w:Math.max(3.2,w*.85), d:Math.max(2.4,d*.72), h:2.45});
     }
 
-    function manualDim(tipo){
-        if(tipo === 'deck'){ return {w:5.8,d:3.8}; }
-        if(tipo === 'pergola'){ return {w:5.4,d:4.0}; }
-        if(tipo === 'churrasqueira'){ return {w:4.4,d:3.2}; }
-        if(tipo === 'candeeiro'){ return {w:1.2,d:1.2}; }
-        if(tipo === 'planta' || tipo === 'pedra' || tipo === 'rocha'){ return {w:1.3,d:1.3}; }
-        return {w:2.2,d:2.2};
+
+    function criarCarroManual(group, x, y, z, rotY){
+        const body = addBox(group, 1.8, .55, 3.7, x, y+.55, z, materiais.carro, 'carro-corpo');
+        body.rotation.y = rotY || 0;
+        const cabin = addBox(group, 1.45, .55, 1.35, x, y+1.02, z-.35, materiais.vidro, 'carro-cabine');
+        cabin.rotation.y = rotY || 0;
+        const rodaGeo = new THREE.CylinderGeometry(.28,.28,.18,16);
+        const offsets = [[-.82,-1.25],[.82,-1.25],[-.82,1.25],[.82,1.25]];
+        offsets.forEach(function(o){
+            const wheel = new THREE.Mesh(rodaGeo, materiais.preto);
+            wheel.position.set(x+o[0], y+.28, z+o[1]);
+            wheel.rotation.z = Math.PI/2;
+            wheel.rotation.y = rotY || 0;
+            group.add(wheel);
+        });
     }
+
+    function criarChafarizManual(group, x, y, z, scale){
+        scale = scale || 1;
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(1.25*scale,1.25*scale,.22*scale,28), materiais.chafariz);
+        base.position.set(x,y+.12*scale,z); base.receiveShadow = true; group.add(base);
+        const agua = new THREE.Mesh(new THREE.CylinderGeometry(.92*scale,.92*scale,.08*scale,28), materiais.agua);
+        agua.position.set(x,y+.30*scale,z); group.add(agua);
+        const coluna = new THREE.Mesh(new THREE.CylinderGeometry(.18*scale,.24*scale,.95*scale,18), materiais.chafariz);
+        coluna.position.set(x,y+.76*scale,z); coluna.castShadow = true; group.add(coluna);
+        const topo = new THREE.Mesh(new THREE.SphereGeometry(.25*scale,16,12), materiais.agua);
+        topo.position.set(x,y+1.28*scale,z); group.add(topo);
+    }
+
+    function criarPavimentoManual(group, x, y, z, scale, item){
+        item = item || {};
+        const rot = item.rotY || 0;
+        const local = new THREE.Group();
+        local.position.set(x, y, z);
+        local.rotation.y = rot;
+        group.add(local);
+        const dim = manualDim('pavimento', item);
+        const w = dim.w * (scale || 1), d = dim.d * (scale || 1);
+        addBox(local, w, .08, d, 0, .055, 0, materiais.betao, 'pavimento-manual');
+        addBox(local, w + .12, .045, .08, 0, .12, -d/2, materiais.pedra, 'pavimento-remate');
+        addBox(local, w + .12, .045, .08, 0, .12, d/2, materiais.pedra, 'pavimento-remate');
+        addBox(local, .08, .045, d + .12, -w/2, .12, 0, materiais.pedra, 'pavimento-remate');
+        addBox(local, .08, .045, d + .12, w/2, .12, 0, materiais.pedra, 'pavimento-remate');
+    }
+
+
+    function criarCaminhoManual(group, x, y, z, scale, item){
+        item = item || {};
+        const dim = manualDim('caminho', item);
+        const w = dim.w * (scale || 1), d = dim.d * (scale || 1);
+        const rot = item.rotY || 0;
+        const slab = addBox(group, w, .075, d, x, y + .055, z, materiais.betao, 'caminho-manual');
+        slab.rotation.y = rot;
+        for(let i=-2;i<=2;i++){
+            const junta = addBox(group, w + .02, .025, .035, x, y + .105, z + i*d/5, materiais.pedra, 'junta-caminho');
+            junta.rotation.y = rot;
+        }
+    }
+
+    function criarVarandaManual(group, m){
+        const w = Number(m.w || 3.2);
+        const d = Number(m.d || 1.35);
+        const face = m.face || 'frente';
+        const y = isFinite(m.y) ? m.y : 3.25;
+        let x = m.x, z = m.z;
+        let slabW = w, slabD = d;
+        if(face === 'esq' || face === 'dir'){
+            slabW = d; slabD = w;
+        }
+        addBox(group, slabW, .18, slabD, x, y, z, materiais.betao, 'varanda-laje');
+        const guardY = y + .62;
+        if(face === 'frente' || face === 'tras'){
+            const outZ = z + (face === 'frente' ? slabD/2 : -slabD/2);
+            addBox(group, slabW, .9, .08, x, guardY, outZ, materiais.vidro, 'guarda-varanda');
+            addBox(group, .08, .9, slabD, x - slabW/2, guardY, z, materiais.vidro, 'guarda-varanda-lat');
+            addBox(group, .08, .9, slabD, x + slabW/2, guardY, z, materiais.vidro, 'guarda-varanda-lat');
+        }else{
+            const outX = x + (face === 'dir' ? slabW/2 : -slabW/2);
+            addBox(group, .08, .9, slabD, outX, guardY, z, materiais.vidro, 'guarda-varanda');
+            addBox(group, slabW, .9, .08, x, guardY, z - slabD/2, materiais.vidro, 'guarda-varanda-lat');
+            addBox(group, slabW, .9, .08, x, guardY, z + slabD/2, materiais.vidro, 'guarda-varanda-lat');
+        }
+    }
+
+    function criarTelhadoManualSimples(group, w, d, x, z, topY, tipo){
+        tipo = tipo || 'uma_agua';
+        if(tipo === 'plano'){
+            addBox(group, w + .35, .20, d + .35, x, topY + .10, z, materiais.telheadoEscuro, 'telhado-anexo-extra-plano');
+            return;
+        }
+        if(tipo === 'sandwich'){
+            const roof = addBox(group, w + .55, .16, d + .55, x, topY + .25, z, materiais.telheadoEscuro, 'telhado-anexo-extra-sandwich');
+            roof.rotation.x = deg(-5);
+            return;
+        }
+        if(tipo === 'duas_aguas' || tipo === 'beiral'){
+            const hw=w/2+.35, hd=d/2+.35, rise=1.0;
+            const verts=[-hw,topY,-hd, hw,topY,-hd, -hw,topY,hd, hw,topY,hd, 0,topY+rise,-hd, 0,topY+rise,hd];
+            const faces=[0,4,5, 0,5,2, 1,3,5, 1,5,4, 0,1,4, 2,5,3];
+            const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3)); geo.setIndex(faces); geo.computeVertexNormals();
+            const mesh=new THREE.Mesh(geo,materiais.telheado); mesh.position.set(x,0,z); mesh.castShadow=QUALITY!=='mobile'; group.add(mesh);
+            return;
+        }
+        const roof = addBox(group, w + .50, .16, d + .50, x, topY + .32, z, materiais.telheado, 'telhado-anexo-extra-uma-agua');
+        roof.rotation.x = deg(-7);
+    }
+
+    function criarAnexoLivreManual(group, x, y, z, scale, item){
+        item = item || {};
+        const rot = item.rotY || 0;
+        const local = new THREE.Group();
+        local.position.set(x, y, z);
+        local.rotation.y = rot;
+        group.add(local);
+        const dim = manualDim('anexo_extra', item);
+        const w = dim.w * (scale || 1), d = dim.d * (scale || 1), h = (dim.h || 2.75) * (scale || 1);
+        addBox(local, w, h, d, 0, h/2, 0, materiais.parede, 'anexo-extra-corpo');
+        criarTelhadoManualSimples(local, w, d, 0, 0, h, item.telhado || dim.telhado || 'uma_agua');
+        addPlane(local, .85, 1.9, -w*.22, .98, d/2 + .035, 0, materiais.porta, 'porta-anexo-extra');
+        addPlane(local, 1.0, 1.0, w*.20, 1.55, d/2 + .035, 0, materiais.janela, 'janela-anexo-extra');
+    }
+
+
+    function criarUnidadeClimatizacao(group, x, y, z, rotY){
+        const corpo = addBox(group, 1.15, .62, .38, x, y, z, materiais.pedra, 'unidade-climatizacao');
+        corpo.rotation.y = rotY || 0;
+        const grelha = addPlane(group, .78, .36, x, y, z + .205, 0, materiais.preto, 'grelha-climatizacao');
+        grelha.rotation.y = rotY || 0;
+    }
+
+    function criarClimatizacao(cfg, lote, fp, posCasa){
+        if(!cfg || cfg.climatizacao === 'nenhuma'){ return; }
+        const unidades = cfg.climatizacao === 'completa' ? 3 : (cfg.climatizacao === 'condutas' ? 2 : 1);
+        for(let i=0;i<unidades;i++){
+            const x = posCasa.x + fp.w/2 + .32;
+            const z = posCasa.z - fp.d*.25 + i * Math.min(2.1, fp.d/(unidades+1));
+            criarUnidadeClimatizacao(grupoConstrucao, x, .70, z, Math.PI/2);
+        }
+        if(cfg.climatizacao === 'condutas' || cfg.climatizacao === 'completa'){
+            addBox(grupoConstrucao, fp.w*.72, .18, .32, posCasa.x, Math.max(3.2, cfg.andares*3.0 + .55), posCasa.z - fp.d*.18, materiais.preto, 'equipamento-cobertura-climatizacao');
+        }
+    }
+
+
+    function criarAberturaManual(group, m, tipo){
+        const mat = tipo === 'porta' ? materiais.porta : materiais.janela;
+        const w = tipo === 'porta' ? 1.0 : 1.15;
+        const h = tipo === 'porta' ? 2.1 : 1.05;
+        const y = isFinite(m.y) ? m.y : (tipo === 'porta' ? 1.05 : 1.75);
+        addPlane(group, w, h, m.x, y, m.z, m.rotY || 0, mat, tipo === 'porta' ? 'porta-extra' : 'janela-extra');
+    }
+
+    function criarChamineManual(group, m){
+        const y = isFinite(m.y) ? m.y : 4.0;
+        addBox(group, .48, 1.05, .48, m.x, y + .52, m.z, materiais.fachadaPedra || materiais.pedra, 'chamine');
+        addBox(group, .62, .14, .62, m.x, y + 1.10, m.z, materiais.preto, 'chamine-topo');
+        addBox(group, .16, .26, .16, m.x - .14, y + 1.28, m.z, materiais.preto, 'chamine-saida');
+        addBox(group, .16, .26, .16, m.x + .14, y + 1.28, m.z, materiais.preto, 'chamine-saida');
+    }
+
+    function manualDim(tipo, src){
+        const cfg = ultimoCfg || lerCfg();
+        const scale = src && isFinite(src.scale) ? Number(src.scale) : 1;
+        if(tipo === 'deck'){ return {w:(src && src.w) || cfg.deckLargura || 5.2, d:(src && src.d) || cfg.deckProfundidade || 3.2}; }
+        if(tipo === 'pergola'){ return {w:(src && src.w) || cfg.pergolaLargura || 4.8, d:(src && src.d) || cfg.pergolaProfundidade || 3.3, h:(src && src.h) || cfg.pergolaAltura || 2.45}; }
+        if(tipo === 'churrasqueira'){ return {w:(src && src.w) || cfg.churrascoLargura || 3.6, d:(src && src.d) || cfg.churrascoProfundidade || 2.5}; }
+        if(tipo === 'candeeiro'){ return {w:1.2*scale,d:1.2*scale}; }
+        if(tipo === 'planta' || tipo === 'pedra' || tipo === 'rocha'){ return {w:1.3*scale,d:1.3*scale}; }
+        if(tipo === 'carro'){ return {w:2.1,d:4.4}; }
+        if(tipo === 'chafariz'){ return {w:2.8,d:2.8}; }
+        if(tipo === 'chamine'){ return {w:.9,d:.9}; }
+        if(tipo === 'janela_extra'){ return {w:1.15,d:.25}; }
+        if(tipo === 'porta_extra'){ return {w:1.05,d:.35}; }
+        if(tipo === 'varanda_extra'){ return {w:(src && src.w) || cfg.varandaLargura || 3.2, d:(src && src.d) || cfg.varandaProfundidade || 1.35}; }
+        if(tipo === 'anexo_extra'){ return {w:(src && src.w) || cfg.anexoExtraLargura || 6, d:(src && src.d) || cfg.anexoExtraProfundidade || 4.2, h:(src && src.h) || cfg.anexoExtraAltura || 2.75, telhado:(src && src.telhado) || cfg.anexoExtraTelhado || 'uma_agua'}; }
+        if(tipo === 'pavimento'){ return {w:(src && src.w) || cfg.pavimentoLargura || 5, d:(src && src.d) || cfg.pavimentoProfundidade || 3}; }
+        if(tipo === 'caminho'){ return {w:(src && src.w) || cfg.caminhoLargura || 1.4, d:(src && src.d) || cfg.caminhoComprimento || 6}; }
+        return {w:2.2*scale,d:2.2*scale};
+    }
+
 
     function manualRect(m){
-        const dim = manualDim(m.tipo);
+        const dim = manualDim(m.tipo, m);
         const sc = Number(m.scale || 1);
-        return rect('Manual ' + m.tipo, m.x, m.z, dim.w * sc, dim.d * sc);
+        return rectManualRot('Manual ' + m.tipo, m.x, m.z, (dim.w || 1) * sc, (dim.d || 1) * sc, m.rotY || 0);
     }
+
 
     function recriarManuais(cfg, lote){
         disposeGroup(grupoManuais);
@@ -1413,26 +1751,90 @@ const App = (function(){
         for(let i=0;i<manuais.length;i++){
             const m = manuais[i];
             if(!m || !m.tipo || !isFinite(m.x) || !isFinite(m.z)){ continue; }
+            const isWallTool = m.tipo === 'janela_extra' || m.tipo === 'porta_extra' || m.tipo === 'varanda_extra';
+            const isRoofTool = m.tipo === 'chamine';
             const r = manualRect(m);
-            if(!insideLotRect(r, lote, 1.2)){ continue; }
+            if(!isWallTool && !isRoofTool && !insideLotRect(r, lote, 1.2)){ continue; }
             let colide = false;
-            for(let j=0;j<objetosOcupados.length;j++){
-                if(intersectRect(r, objetosOcupados[j], .75)){ colide = true; break; }
+            if(!isWallTool && !isRoofTool){
+                for(let j=0;j<objetosOcupados.length;j++){
+                    if(intersectRect(r, objetosOcupados[j], .75)){ colide = true; break; }
+                }
             }
             if(colide){ continue; }
             const y = 0;
+            const startChild = grupoManuais.children.length;
             if(m.tipo === 'arvore'){ criarArvore(grupoManuais, m.x, y, m.z, 'arvore', m.scale || 1); }
             if(m.tipo === 'palmeira'){ criarArvore(grupoManuais, m.x, y, m.z, 'palmeira', m.scale || 1); }
             if(m.tipo === 'candeeiro'){ criarCandeeiro(grupoManuais, m.x, y, m.z); }
             if(m.tipo === 'rocha' || m.tipo === 'pedra'){ criarRocha(grupoManuais, m.x, y, m.z); }
             if(m.tipo === 'planta'){ criarPlanta(grupoManuais, m.x, y, m.z, m.scale || 1); }
-            if(m.tipo === 'deck'){ criarDeckManual(grupoManuais, m.x, y, m.z, m.scale || 1); }
-            if(m.tipo === 'pergola'){ criarPergolaManual(grupoManuais, m.x, y, m.z, m.scale || 1); }
-            if(m.tipo === 'churrasqueira'){ criarChurrasqueiraManual(grupoManuais, m.x, y, m.z, m.scale || 1); }
-            objetosOcupados.push(r);
+            if(m.tipo === 'deck'){ criarDeckManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'pavimento'){ criarPavimentoManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'caminho'){ criarCaminhoManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'pergola'){ criarPergolaManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'churrasqueira'){ criarChurrasqueiraManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'anexo_extra'){ criarAnexoLivreManual(grupoManuais, m.x, y, m.z, m.scale || 1, m); }
+            if(m.tipo === 'carro'){ criarCarroManual(grupoManuais, m.x, y, m.z, m.rotY || 0); }
+            if(m.tipo === 'chafariz'){ criarChafarizManual(grupoManuais, m.x, y, m.z, m.scale || 1); }
+            if(m.tipo === 'janela_extra'){ criarAberturaManual(grupoManuais, m, 'janela'); }
+            if(m.tipo === 'porta_extra'){ criarAberturaManual(grupoManuais, m, 'porta'); }
+            if(m.tipo === 'varanda_extra'){ criarVarandaManual(grupoManuais, m); }
+            if(m.tipo === 'chamine'){ criarChamineManual(grupoManuais, m); }
+            for(let c=startChild; c<grupoManuais.children.length; c++){
+                grupoManuais.children[c].userData.manualIndex = validados.length;
+                grupoManuais.children[c].userData.manualTipo = m.tipo;
+            }
+            if(!isWallTool && !isRoofTool && m.tipo !== 'varanda_extra'){ objetosOcupados.push(r); }
             validados.push(m);
         }
         manuais = validados;
+    }
+
+
+
+    function ferramentaPermiteRotacao(tool){
+        return ['deck','pavimento','caminho','pergola','churrasqueira','anexo_extra','carro','chafariz','arvore','palmeira','planta','pedra','rocha','candeeiro'].indexOf(tool) >= 0;
+    }
+
+    function rotacaoAtualFerramenta(tool){
+        if(!tool || !ferramentaPermiteRotacao(tool)){ return 0; }
+        return rotacoesFerramenta[tool] || 0;
+    }
+
+    function rectDimRot(w,d,rot){
+        rot = rot || 0;
+        const c = Math.abs(Math.cos(rot));
+        const sn = Math.abs(Math.sin(rot));
+        return {w:(w*c)+(d*sn), d:(w*sn)+(d*c)};
+    }
+
+    function rectManualRot(nome, x, z, w, d, rot){
+        const rd = rectDimRot(w || 1, d || 1, rot || 0);
+        return rect(nome || 'manual', x, z, rd.w, rd.d);
+    }
+
+    function atualizarPreviewPorUltimoPonto(){
+        if(!ferramentaAtual || !ultimoPontoTerreno){ return; }
+        const cfg = ultimoCfg || lerCfg();
+        const lote = loteDimensoes(cfg);
+        let avaliacao;
+        if(ferramentaAtual === 'mover_piscina' || ferramentaAtual === 'mover_anexo' || ferramentaAtual === 'apagar_extra'){
+            return;
+        }
+        avaliacao = avaliarColocacao(ultimoPontoTerreno.x, ultimoPontoTerreno.z, ferramentaAtual, cfg, lote);
+        ultimoPontoPreview = avaliacao;
+        desenharPreview(avaliacao);
+    }
+
+    function onWheelFerramenta(ev){
+        if(!ferramentaAtual || !ferramentaPermiteRotacao(ferramentaAtual)){ return; }
+        ev.preventDefault();
+        ev.stopPropagation();
+        const passo = deg(ev.shiftKey ? 5 : 15);
+        const atual = rotacaoAtualFerramenta(ferramentaAtual);
+        rotacoesFerramenta[ferramentaAtual] = atual + (ev.deltaY > 0 ? passo : -passo);
+        atualizarPreviewPorUltimoPonto();
     }
 
     function pontoDentroLote(x,z,lote,margin){
@@ -1461,16 +1863,279 @@ const App = (function(){
         if(main){ main.classList.toggle('ativo', !!ferramentaAtual); }
     }
 
-    function onPointerDown(ev){
-        if(!ferramentaAtual || !camara || !renderizador){ return; }
+
+    function obterPontoTerrenoDoEvento(ev){
+        if(!camara || !renderizador){ return null; }
         const holder = $('canvas-container');
+        if(!holder){ return null; }
         const rectDom = holder.getBoundingClientRect();
         rato.x = ((ev.clientX - rectDom.left) / rectDom.width) * 2 - 1;
         rato.y = -((ev.clientY - rectDom.top) / rectDom.height) * 2 + 1;
         raycaster.setFromCamera(rato, camara);
-        const inters = raycaster.intersectObject(loteMesh || terrenoMesh, false);
-        if(!inters.length){ return; }
-        const p = inters[0].point;
+        const alvo = loteMesh || terrenoMesh;
+        if(!alvo){ return null; }
+        const inters = raycaster.intersectObject(alvo, false);
+        if(!inters.length){ return null; }
+        return inters[0].point;
+    }
+
+    function obterManualDoEvento(ev){
+        if(!camara || !renderizador || !grupoManuais.children.length){ return null; }
+        const holder = $('canvas-container');
+        if(!holder){ return null; }
+        const rectDom = holder.getBoundingClientRect();
+        rato.x = ((ev.clientX - rectDom.left) / rectDom.width) * 2 - 1;
+        rato.y = -((ev.clientY - rectDom.top) / rectDom.height) * 2 + 1;
+        raycaster.setFromCamera(rato, camara);
+        const hits = raycaster.intersectObjects(grupoManuais.children, true);
+        for(let i=0;i<hits.length;i++){
+            let obj = hits[i].object;
+            while(obj){
+                if(obj.userData && typeof obj.userData.manualIndex === 'number'){
+                    const idx = obj.userData.manualIndex;
+                    if(manuais[idx]){ return {index:idx, item:manuais[idx], object:hits[i].object}; }
+                }
+                obj = obj.parent;
+            }
+        }
+        return null;
+    }
+
+    function apagarExtraPorIndice(idx){
+        if(typeof idx !== 'number' || idx < 0 || idx >= manuais.length){ return false; }
+        const apagado = manuais.splice(idx, 1)[0];
+        atualizarGeometria(false);
+        mostrarModal('Extra removido', 'Foi removido apenas o elemento selecionado: ' + (apagado && apagado.tipo ? apagado.tipo : 'extra') + '.', [{texto:'OK', tipo:'primary'}]);
+        return true;
+    }
+
+
+    function nomesConstrucoesParaSnap(){
+        return ['Casa principal','Vivenda','Garagem','Anexo'];
+    }
+
+    function isNomeConstrução(nome){
+        nome = nome || '';
+        return nome.indexOf('Casa') >= 0 || nome.indexOf('Vivenda') >= 0 || nome.indexOf('Garagem') >= 0 || nome.indexOf('Anexo') >= 0;
+    }
+
+    function snapParede(x,z, apenasCasa){
+        let melhor = null;
+        const maxDist = apenasCasa ? 4.8 : 2.0;
+        for(let i=0;i<objetosOcupados.length;i++){
+            const o = objetosOcupados[i];
+            const nome = o.name || '';
+            if(apenasCasa){
+                if(nome.indexOf('Casa') < 0 && nome.indexOf('Vivenda') < 0){ continue; }
+            }else if(!isNomeConstrução(nome)){ continue; }
+            const checks = [
+                {face:'frente', dist:Math.abs(z-o.maxZ), ok:x>=o.minX-.5 && x<=o.maxX+.5, x:clamp(x,o.minX+.8,o.maxX-.8), z:o.maxZ+.06, rotY:0},
+                {face:'tras', dist:Math.abs(z-o.minZ), ok:x>=o.minX-.5 && x<=o.maxX+.5, x:clamp(x,o.minX+.8,o.maxX-.8), z:o.minZ-.06, rotY:Math.PI},
+                {face:'esq', dist:Math.abs(x-o.minX), ok:z>=o.minZ-.5 && z<=o.maxZ+.5, x:o.minX-.06, z:clamp(z,o.minZ+.8,o.maxZ-.8), rotY:-Math.PI/2},
+                {face:'dir', dist:Math.abs(x-o.maxX), ok:z>=o.minZ-.5 && z<=o.maxZ+.5, x:o.maxX+.06, z:clamp(z,o.minZ+.8,o.maxZ-.8), rotY:Math.PI/2}
+            ];
+            checks.forEach(function(c){
+                if(!c.ok || c.dist > maxDist){ return; }
+                if(!melhor || c.dist < melhor.dist){ melhor = Object.assign({rect:o}, c); }
+            });
+        }
+        return melhor;
+    }
+
+    function snapPergola(x,z,dim){
+        const wall = snapParede(x,z,true);
+        if(!wall){ return null; }
+        const w = dim.w || 4.8;
+        const d = dim.d || 3.3;
+        let px = x, pz = z, rotY = 0;
+        if(wall.face === 'frente'){
+            px = clamp(x, wall.rect.minX + w/2 + .2, wall.rect.maxX - w/2 - .2);
+            pz = wall.rect.maxZ + d/2 + .08;
+            rotY = 0;
+        }else if(wall.face === 'tras'){
+            px = clamp(x, wall.rect.minX + w/2 + .2, wall.rect.maxX - w/2 - .2);
+            pz = wall.rect.minZ - d/2 - .08;
+            rotY = Math.PI;
+        }else if(wall.face === 'esq'){
+            px = wall.rect.minX - d/2 - .08;
+            pz = clamp(z, wall.rect.minZ + w/2 + .2, wall.rect.maxZ - w/2 - .2);
+            rotY = -Math.PI/2;
+        }else if(wall.face === 'dir'){
+            px = wall.rect.maxX + d/2 + .08;
+            pz = clamp(z, wall.rect.minZ + w/2 + .2, wall.rect.maxZ - w/2 - .2);
+            rotY = Math.PI/2;
+        }
+        return {x:px,z:pz,attached:true,face:wall.face,rotY:rotY,ignoreName:wall.rect.name};
+    }
+
+    function snapChamine(x,z,cfg){
+        let alvo = null;
+        let best = Infinity;
+        for(let i=0;i<objetosOcupados.length;i++){
+            const o = objetosOcupados[i];
+            const nome = o.name || '';
+            if(nome.indexOf('Casa') < 0 && nome.indexOf('Vivenda') < 0){ continue; }
+            const cx = clamp(x, o.minX + 1.4, o.maxX - 1.4);
+            const cz = clamp(z, o.minZ + 1.4, o.maxZ - 1.4);
+            const dist = Math.hypot(x-cx, z-cz);
+            if(dist < best){ best = dist; alvo = Object.assign({cx:cx, cz:cz}, o); }
+        }
+        if(!alvo || best > 5.0){ return null; }
+        const pe = cfg.tipo === 'predio' ? 3.05 : 3.0;
+        const topY = pe * Math.max(1, cfg.andares);
+        const relX = alvo.cx - alvo.x;
+        const relZ = alvo.cz - alvo.z;
+        const rise = cfg.telhado === 'plano' ? 0 : inclinacaoValor(cfg);
+        const roofType = cfg.telhado === 'beiral' ? 'duas_aguas' : (cfg.telhado === 'sandwich' ? 'uma_agua' : cfg.telhado);
+        const y = alturaNoTelhado(roofType, cfg.orientacaoTelhado || 'frente_tras', relX, relZ, alvo.w || (alvo.maxX-alvo.minX), alvo.d || (alvo.maxZ-alvo.minZ), topY + .05, rise) + .08;
+        return {x:alvo.cx,z:alvo.cz,y:y};
+    }
+
+    function avaliarColocacao(x,z,tool,cfg,lote){
+        const dim = manualDim(tool, null);
+        let rotY = rotacaoAtualFerramenta(tool);
+        let item = {tipo:tool, x:x, z:z, scale:1, rotY:rotY};
+        let r = rectManualRot('Manual ' + tool, x, z, dim.w || 1, dim.d || 1, rotY);
+        let ignorar = [];
+        if(tool === 'pergola'){
+            const snap = snapPergola(x,z,dim);
+            if(snap){
+                item.x = snap.x; item.z = snap.z; item.attached = true; item.face = snap.face; item.rotY = snap.rotY || 0; item.w = dim.w; item.d = dim.d; item.h = dim.h;
+                r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
+                if(snap.ignoreName){ ignorar.push(snap.ignoreName); }
+            }else{
+                item.w = dim.w; item.d = dim.d; item.h = dim.h;
+                r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
+            }
+        }
+        if(tool === 'deck' || tool === 'pavimento' || tool === 'caminho'){
+            item.w = dim.w; item.d = dim.d;
+            r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
+        }
+        if(tool === 'churrasqueira'){
+            item.w = dim.w; item.d = dim.d;
+            r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
+        }
+        if(tool === 'anexo_extra'){
+            item.w = dim.w; item.d = dim.d; item.h = dim.h; item.telhado = dim.telhado || cfg.anexoExtraTelhado || 'uma_agua';
+            r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
+        }
+        if(tool === 'varanda_extra'){
+            const snap = snapParede(x,z,false);
+            if(!snap){ return {ok:false, item:item, rect:r, reason:'A varanda tem de ser colocada junto a uma parede da casa, garagem ou anexo.'}; }
+            item.face = snap.face; item.w = dim.w; item.d = dim.d; item.y = cfg.andares > 1 ? 3.12 : 2.15;
+            const out = dim.d/2 + .12;
+            if(snap.face === 'frente'){ item.x = snap.x; item.z = snap.z + out; r = rect('Varanda', item.x, item.z, dim.w, dim.d); }
+            else if(snap.face === 'tras'){ item.x = snap.x; item.z = snap.z - out; r = rect('Varanda', item.x, item.z, dim.w, dim.d); }
+            else if(snap.face === 'esq'){ item.x = snap.x - out; item.z = snap.z; r = rect('Varanda', item.x, item.z, dim.d, dim.w); }
+            else{ item.x = snap.x + out; item.z = snap.z; r = rect('Varanda', item.x, item.z, dim.d, dim.w); }
+            if(!insideLotRect(r, lote, 1.2)){ return {ok:false, item:item, rect:r, reason:'A varanda ficaria fora do lote.'}; }
+            for(let i=0;i<objetosOcupados.length;i++){
+                const nome = objetosOcupados[i].name || '';
+                if(nome === snap.rect.name){ continue; }
+                if(intersectRect(r, objetosOcupados[i], .75)){ return {ok:false, item:item, rect:r, reason:'A varanda colide com outro elemento.'}; }
+            }
+            return {ok:true, item:item, rect:r, wall:true};
+        }
+        if(tool === 'janela_extra' || tool === 'porta_extra'){
+            const snap = snapParede(x,z,false);
+            if(!snap){ return {ok:false, item:item, rect:r, reason:'A janela/porta tem de ser colocada junto a uma parede existente.'}; }
+            item.x = snap.x; item.z = snap.z; item.rotY = snap.rotY; item.y = tool === 'porta_extra' ? 1.08 : 1.78;
+            return {ok:true, item:item, rect:rect('Abertura', item.x, item.z, 1.2, 1.2), wall:true};
+        }
+        if(tool === 'chamine'){
+            const snap = snapChamine(x,z,cfg);
+            if(!snap){ return {ok:false, item:item, rect:r, reason:'A chaminé tem de ser colocada sobre a casa.'}; }
+            item.x = snap.x; item.z = snap.z; item.y = snap.y;
+            return {ok:true, item:item, rect:rect('Chaminé', item.x, item.z, 1, 1), roof:true};
+        }
+        if(!insideLotRect(r, lote, 1.2)){ return {ok:false, item:item, rect:r, reason:'O elemento tem de ficar dentro do lote.'}; }
+        for(let i=0;i<objetosOcupados.length;i++){
+            const nome = objetosOcupados[i].name || '';
+            if(ignorar.indexOf(nome) >= 0){ continue; }
+            if(intersectRect(r, objetosOcupados[i], .85)){ return {ok:false, item:item, rect:r, reason:'Existe colisão com outro elemento.'}; }
+        }
+        return {ok:true, item:item, rect:r};
+    }
+
+    function limparPreview(){
+        disposeGroup(grupoPreview);
+        ultimoPontoPreview = null;
+    }
+
+    function desenharPreview(avaliacao){
+        disposeGroup(grupoPreview);
+        if(!avaliacao || !avaliacao.rect){ return; }
+        const r = avaliacao.rect;
+        const mat = avaliacao.ok ? materiais.previewOk : materiais.previewBad;
+        const h = avaliacao.wall ? 1.65 : (avaliacao.roof ? .35 : .12);
+        const y = avaliacao.wall ? 1.45 : (avaliacao.roof ? (avaliacao.item.y || 3) : .18);
+        const baseW = avaliacao.item && isFinite(avaliacao.item.w) ? Number(avaliacao.item.w) : r.w;
+        const baseD = avaliacao.item && isFinite(avaliacao.item.d) ? Number(avaliacao.item.d) : r.d;
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(Math.max(.3,baseW), h, Math.max(.3,baseD)), mat);
+        mesh.position.set(r.x, y, r.z);
+        if(avaliacao.item && isFinite(avaliacao.item.rotY)){ mesh.rotation.y = avaliacao.item.rotY; }
+        mesh.name = 'preview-colocacao';
+        grupoPreview.add(mesh);
+    }
+
+    function onPointerMove(ev){
+        if(!ferramentaAtual){ limparPreview(); return; }
+        if(ferramentaAtual === 'apagar_extra'){
+            const hit = obterManualDoEvento(ev);
+            if(hit && hit.item){
+                const r = manualRect(hit.item);
+                desenharPreview({ok:false, rect:r, item:hit.item});
+            }else{ limparPreview(); }
+            return;
+        }
+        const p = obterPontoTerrenoDoEvento(ev);
+        if(!p){ limparPreview(); return; }
+        ultimoPontoTerreno = {x:p.x, z:p.z};
+        const cfg = ultimoCfg || lerCfg();
+        const lote = loteDimensoes(cfg);
+        let avaliacao;
+        if(ferramentaAtual === 'mover_piscina'){
+            const comp = safeNumber('piscina-comprimento', 8, 4, 30);
+            const larg = safeNumber('piscina-largura', 4, 2.5, 15);
+            const r = rect('Piscina', p.x, p.z, comp + 2, larg + 2);
+            let ok = insideLotRect(r, lote, 1.4);
+            if(ok){
+                for(let i=0;i<objetosOcupados.length;i++){
+                    if(objetosOcupados[i].name === 'Piscina'){ continue; }
+                    if(intersectRect(r, objetosOcupados[i], 1.0)){ ok = false; break; }
+                }
+            }
+            avaliacao = {ok:ok, rect:r, item:{x:p.x,z:p.z}};
+        }else if(ferramentaAtual === 'mover_anexo'){
+            const cfgAtual = lerCfg();
+            const dim = dimsAnexo(cfgAtual);
+            const r = rect('Anexo', p.x, p.z, dim.w, dim.d);
+            let ok = cfgAtual.anexos !== 'nenhum' && insideLotRect(r, lote, 1.7);
+            if(ok){
+                for(let i=0;i<objetosOcupados.length;i++){
+                    if(objetosOcupados[i].name === 'Anexo'){ continue; }
+                    if(intersectRect(r, objetosOcupados[i], 1.05)){ ok = false; break; }
+                }
+            }
+            avaliacao = {ok:ok, rect:r, item:{x:p.x,z:p.z}};
+        }else{
+            avaliacao = avaliarColocacao(p.x,p.z,ferramentaAtual,cfg,lote);
+        }
+        ultimoPontoPreview = avaliacao;
+        desenharPreview(avaliacao);
+    }
+
+    function onPointerDown(ev){
+        if(!ferramentaAtual || !camara || !renderizador){ return; }
+        if(ferramentaAtual === 'apagar_extra'){
+            const hit = obterManualDoEvento(ev);
+            if(!hit){ mostrarModal('Nenhum extra selecionado', 'Clique diretamente sobre o extra 3D que quer remover.', [{texto:'OK', tipo:'primary'}]); return; }
+            apagarExtraPorIndice(hit.index);
+            return;
+        }
+        const p = obterPontoTerrenoDoEvento(ev);
+        if(!p){ return; }
         const cfg = ultimoCfg || lerCfg();
         const lote = loteDimensoes(cfg);
 
@@ -1490,9 +2155,9 @@ const App = (function(){
                 }
             }
             const piscina = $('piscina'); if(piscina){ piscina.checked = true; }
-            const manual = $('piscina-manual'); if(manual){ manual.value = '1'; }
-            const xEl = $('piscina-x'); if(xEl){ xEl.value = p.x.toFixed(3); }
-            const zEl = $('piscina-z'); if(zEl){ zEl.value = p.z.toFixed(3); }
+            setValueIfExists('piscina-manual','1');
+            setValueIfExists('piscina-x',p.x.toFixed(3));
+            setValueIfExists('piscina-z',p.z.toFixed(3));
             atualizarGeometria(false);
             return;
         }
@@ -1516,25 +2181,26 @@ const App = (function(){
                     return;
                 }
             }
-            const manual = $('anexo-manual'); if(manual){ manual.value = '1'; }
-            const xEl = $('anexo-x'); if(xEl){ xEl.value = p.x.toFixed(3); }
-            const zEl = $('anexo-z'); if(zEl){ zEl.value = p.z.toFixed(3); }
+            setValueIfExists('anexo-manual','1');
+            setValueIfExists('anexo-x',p.x.toFixed(3));
+            setValueIfExists('anexo-z',p.z.toFixed(3));
             atualizarGeometria(false);
             return;
         }
 
-        if(!pontoDentroLote(p.x, p.z, lote, 1.5)){
-            mostrarModal('Fora do lote', 'Esse elemento deve ser colocado dentro do terreno/lote.', [{texto:'OK', tipo:'primary'}]);
+        const avaliacao = avaliarColocacao(p.x,p.z,ferramentaAtual,cfg,lote);
+        if(!avaliacao.ok){
+            mostrarModal('Sem espaço nesse ponto', avaliacao.reason || 'Esse ponto não é válido para o elemento selecionado.', [{texto:'OK', tipo:'primary'}]);
             return;
         }
-        if(!pontoLivre(p.x, p.z, ferramentaAtual)){
-            mostrarModal('Sem espaço nesse ponto', 'Esse ponto está demasiado próximo da casa, garagem, anexo, piscina, deck ou outro elemento. Escolha outro local dentro do lote.', [{texto:'OK', tipo:'primary'}]);
-            return;
+        const item = avaliacao.item;
+        if(['deck','pavimento','caminho','pergola','churrasqueira','anexo_extra','carro','chafariz','janela_extra','porta_extra','varanda_extra','chamine'].indexOf(item.tipo) < 0){
+            item.scale = .85 + Math.random()*.35;
         }
-        const sc = (ferramentaAtual === 'deck' || ferramentaAtual === 'pergola' || ferramentaAtual === 'churrasqueira') ? 1 : (.85 + Math.random()*.35);
-        manuais.push({tipo:ferramentaAtual, x:p.x, z:p.z, scale:sc});
+        manuais.push(item);
         atualizarGeometria(false);
     }
+
 
     function limparManuais(){
         manuais = [];
@@ -1550,6 +2216,7 @@ const App = (function(){
         items.push(['Estilo', cfg.estiloCasa || 'moderno']);
         items.push(['Área construída', fmtM2(areaTotalConstrucao(cfg))]);
         if(cfg.garagem !== 'nenhuma'){ items.push(['Garagem', cfg.garagem === 'subterranea' ? 'Só orçamento' : cfg.garagem]); }
+        if(cfg.climatizacao && cfg.climatizacao !== 'nenhuma'){ items.push(['Climatização', cfg.climatizacao]); }
         if(cfg.tipoMuro !== 'nenhum'){ items.push(['Vedação', cfg.tipoMuro]); }
         if(cfg.anexos !== 'nenhum'){ items.push(['Anexo', cfg.anexos + ' / ' + (cfg.anexoManual ? 'posição manual' : cfg.posicaoAnexo)]); }
         if(cfg.piscina){ items.push(['Piscina', cfg.piscinaComprimento + ' x ' + cfg.piscinaLargura + ' m']); }
@@ -1595,13 +2262,26 @@ const App = (function(){
         if(cfg.piscina){ const v = cfg.piscinaComprimento * cfg.piscinaLargura * 650 + 9000; rubricas.push({nome:'Piscina', valor:v}); total += v; }
         if(cfg.paineis){ const v = 7200; rubricas.push({nome:'Painéis fotovoltaicos', valor:v}); total += v; }
         if(cfg.claraboias > 0){ const v = cfg.claraboias * 950; rubricas.push({nome:'Claraboias', valor:v}); total += v; }
+        if(cfg.climatizacao && cfg.climatizacao !== 'nenhuma'){
+            let v = 0;
+            if(cfg.climatizacao === 'pre_ac'){ v = 1800; }
+            else if(cfg.climatizacao === 'split'){ v = 4200; }
+            else if(cfg.climatizacao === 'condutas'){ v = 8500; }
+            else if(cfg.climatizacao === 'completa'){ v = 14500; }
+            if(v){ rubricas.push({nome:'Climatização', valor:v}); total += v; }
+        }
         let exterior = 0;
         manuais.forEach(function(m){
             if(m.tipo === 'deck'){ exterior += 2600; }
             else if(m.tipo === 'pergola'){ exterior += 3400; }
             else if(m.tipo === 'churrasqueira'){ exterior += 5200; }
+            else if(m.tipo === 'anexo_extra'){ exterior += Math.max(9000, ((m.w || cfg.anexoExtraLargura || 6) * (m.d || cfg.anexoExtraProfundidade || 4.2)) * 650); }
+            else if(m.tipo === 'varanda_extra'){ exterior += 4200; }
+            else if(m.tipo === 'pavimento'){ exterior += ((m.w || cfg.pavimentoLargura || 5) * (m.d || cfg.pavimentoProfundidade || 3)) * 55; }
+            else if(m.tipo === 'caminho'){ exterior += ((m.w || cfg.caminhoLargura || 1.4) * (m.d || cfg.caminhoComprimento || 6)) * 45; }
             else if(m.tipo === 'candeeiro'){ exterior += 380; }
             else if(m.tipo === 'planta'){ exterior += 45; }
+            else if(m.tipo === 'carro'){ exterior += 0; }
             else{ exterior += 180; }
         });
         if(exterior){ rubricas.push({nome:'Exteriores adicionados no 3D', valor:exterior}); total += exterior; }
@@ -1691,12 +2371,17 @@ const App = (function(){
         const mapa = {
             areaTerreno:'area-terreno', formatoTerreno:'formato-terreno', posicaoCasa:'posicao-casa', entradaLote:'entrada-lote',
             tipoMuro:'tipo-muro', tracadoMuro:'tracado-muro', areaMuro:'area-muro', tipoPlanta:'tipo-planta', densidadeArvores:'densidade-arvores',
-            estiloCasa:'estilo-casa', vivendasQtd:'vivendas-qtd', vivendasDisposicao:'vivendas-disposicao', garagemPortoes:'garagem-portoes',
-            garagemPortaLateral:'garagem-porta-lateral', orientacaoTelhado:'orientacao-telhado', inclinacaoTelhado:'inclinacao-telhado',
-            claraboias:'claraboia', paineis:'paineis-solares', posicaoAnexo:'posicao-anexo', portasAnexo:'portas-anexo',
+            estiloCasa:'estilo-casa', formatoCasa:'formato-casa', personalizarPisos:'personalizar-pisos', paredeFrente:'parede-frente', paredeTras:'parede-tras', paredeEsq:'parede-esq', paredeDir:'parede-dir',
+            piso1Largura:'piso1-largura', piso1Profundidade:'piso1-profundidade', piso2Largura:'piso2-largura', piso2Profundidade:'piso2-profundidade', piso3Largura:'piso3-largura', piso3Profundidade:'piso3-profundidade',
+            vivendasQtd:'vivendas-qtd', vivendasDisposicao:'vivendas-disposicao', garagemPortoes:'garagem-portoes',
+            garagemPortaLateral:'garagem-porta-lateral', garagemTelhado:'garagem-telhado', orientacaoTelhado:'orientacao-telhado', inclinacaoTelhado:'inclinacao-telhado',
+            claraboias:'claraboia', paineis:'paineis-solares', posicaoAnexo:'posicao-anexo', portasAnexo:'portas-anexo', anexoLargura:'anexo-largura', anexoProfundidade:'anexo-profundidade',
             garagemAnexoPortoes:'garagem-anexo-portoes', anexoTelhado:'anexo-telhado', anexoManual:'anexo-manual', anexoX:'anexo-x', anexoZ:'anexo-z',
             posicaoPiscina:'posicao-piscina', piscinaComprimento:'piscina-comprimento', piscinaLargura:'piscina-largura', piscinaManual:'piscina-manual',
-            piscinaX:'piscina-x', piscinaZ:'piscina-z'
+            piscinaX:'piscina-x', piscinaZ:'piscina-z', climatizacao:'climatizacao', varandaLargura:'varanda-largura', varandaProfundidade:'varanda-profundidade',
+            anexoExtraLargura:'anexo-extra-largura', anexoExtraProfundidade:'anexo-extra-profundidade', anexoExtraAltura:'anexo-extra-altura', anexoExtraTelhado:'anexo-extra-telhado',
+            pavimentoLargura:'pavimento-largura', pavimentoProfundidade:'pavimento-profundidade', caminhoLargura:'caminho-largura', caminhoComprimento:'caminho-comprimento',
+            pergolaLargura:'pergola-largura', pergolaProfundidade:'pergola-profundidade', pergolaAltura:'pergola-altura', deckLargura:'deck-largura', deckProfundidade:'deck-profundidade', churrascoLargura:'churrasco-largura', churrascoProfundidade:'churrasco-profundidade'
         };
         return mapa[k] || k;
     }
@@ -1712,7 +2397,14 @@ const App = (function(){
             }else{
                 const doc = new DOMParser().parseFromString(text, 'application/xml');
                 doc.querySelectorAll('configuracao campo').forEach(function(c){ data[c.getAttribute('nome')] = c.textContent; });
-                doc.querySelectorAll('elementosManuais elemento').forEach(function(e){ elems.push({tipo:e.getAttribute('tipo'), x:parseFloat(e.getAttribute('x')), z:parseFloat(e.getAttribute('z')), scale:parseFloat(e.getAttribute('scale') || '1')}); });
+                doc.querySelectorAll('elementosManuais elemento').forEach(function(e){
+                    const item = {tipo:e.getAttribute('tipo'), x:parseFloat(e.getAttribute('x')), z:parseFloat(e.getAttribute('z')), scale:parseFloat(e.getAttribute('scale') || '1')};
+                    ['w','d','h','y','rotY'].forEach(function(k){ if(e.hasAttribute(k)){ item[k] = parseFloat(e.getAttribute(k)); } });
+                    if(e.hasAttribute('attached')){ item.attached = e.getAttribute('attached') === 'true' || e.getAttribute('attached') === '1'; }
+                    if(e.hasAttribute('face')){ item.face = e.getAttribute('face'); }
+                    if(e.hasAttribute('telhado')){ item.telhado = e.getAttribute('telhado'); }
+                    elems.push(item);
+                });
             }
             Object.keys(data).forEach(function(k){
                 const el = $(idCampoConfig(k));
@@ -1812,6 +2504,16 @@ const App = (function(){
         if(box){ box.classList.toggle('aberto'); }
     }
 
+    function alternarDimensoesExteriores(){
+        const el = $('modo-exteriores-avancado');
+        if(el){
+            el.value = el.value === '1' ? '0' : '1';
+            aplicarVisibilidadeCondicional();
+        }
+        const painel = document.querySelector('[data-show-when="modo-exteriores-avancado:1"]');
+        if(painel && el && el.value === '1'){ painel.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    }
+
     function arrancar(){
         initTema();
         if(!initThree()){ return; }
@@ -1825,7 +2527,7 @@ const App = (function(){
         atualizarGeometria(true);
         const loader = $('loading-screen');
         if(loader){ setTimeout(function(){ loader.style.opacity = '0'; setTimeout(function(){ loader.style.display='none'; }, 260); }, 420); }
-        log('Engine CAD 16.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
+        log('Engine CAD 18.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
         loop();
     }
 
@@ -1841,7 +2543,9 @@ const App = (function(){
         importarXML: importarXML,
         exportarImagem: exportarImagem,
         limparManuais: limparManuais,
+        apagarExtraPorIndice: apagarExtraPorIndice,
         alternarPainel: alternarPainel,
-        alternarFerramentas3D: alternarFerramentas3D
+        alternarFerramentas3D: alternarFerramentas3D,
+        alternarDimensoesExteriores: alternarDimensoesExteriores
     };
 })();

@@ -96,6 +96,21 @@
                     <option value="tradicional">Tradicional / antigo</option>
                     <option value="rustico">Rústico / pedra e madeira</option>
                 </select>
+                <div class="form-row">
+                    <div class="form-group half"><label for="formato-casa">Formato da casa</label><select id="formato-casa" class="custom-select js-auto-update"><option value="retangular" selected>Retangular</option><option value="l">Em L</option><option value="u">Em U</option><option value="compacta">Compacta</option></select></div>
+                    <div class="form-group half"><label for="personalizar-pisos">Personalizar pisos</label><select id="personalizar-pisos" class="custom-select js-auto-update"><option value="0" selected>Não</option><option value="1">Sim</option></select></div>
+                </div>
+                <div class="conditional" data-show-when="personalizar-pisos:1">
+                    <div class="note-box">Ajuste a largura/profundidade de cada piso. Os valores são percentagens da área base.</div>
+                    <div class="form-row"><div class="form-group half"><label for="piso1-largura">Piso 1 largura (%)</label><input type="number" id="piso1-largura" class="custom-input js-auto-update" value="100" min="55" max="130" step="5"></div><div class="form-group half"><label for="piso1-profundidade">Piso 1 profundidade (%)</label><input type="number" id="piso1-profundidade" class="custom-input js-auto-update" value="100" min="55" max="130" step="5"></div></div>
+                    <div class="form-row"><div class="form-group half"><label for="piso2-largura">Piso 2 largura (%)</label><input type="number" id="piso2-largura" class="custom-input js-auto-update" value="92" min="45" max="130" step="5"></div><div class="form-group half"><label for="piso2-profundidade">Piso 2 profundidade (%)</label><input type="number" id="piso2-profundidade" class="custom-input js-auto-update" value="92" min="45" max="130" step="5"></div></div>
+                    <div class="form-row"><div class="form-group half"><label for="piso3-largura">Piso 3+ largura (%)</label><input type="number" id="piso3-largura" class="custom-input js-auto-update" value="85" min="40" max="130" step="5"></div><div class="form-group half"><label for="piso3-profundidade">Piso 3+ profundidade (%)</label><input type="number" id="piso3-profundidade" class="custom-input js-auto-update" value="85" min="40" max="130" step="5"></div></div>
+                </div>
+                <div class="conditional" data-show-when="personalizar-pisos:1">
+                    <label>Materiais por parede</label>
+                    <div class="form-row"><div class="form-group half"><label for="parede-frente">Frente</label><select id="parede-frente" class="custom-select js-auto-update"><option value="auto" selected>Do estilo</option><option value="reboco">Reboco claro</option><option value="pedra">Pedra</option><option value="madeira">Madeira</option><option value="vidro">Vidro</option></select></div><div class="form-group half"><label for="parede-tras">Traseiras</label><select id="parede-tras" class="custom-select js-auto-update"><option value="auto" selected>Do estilo</option><option value="reboco">Reboco claro</option><option value="pedra">Pedra</option><option value="madeira">Madeira</option><option value="vidro">Vidro</option></select></div></div>
+                    <div class="form-row"><div class="form-group half"><label for="parede-esq">Esquerda</label><select id="parede-esq" class="custom-select js-auto-update"><option value="auto" selected>Do estilo</option><option value="reboco">Reboco claro</option><option value="pedra">Pedra</option><option value="madeira">Madeira</option><option value="vidro">Vidro</option></select></div><div class="form-group half"><label for="parede-dir">Direita</label><select id="parede-dir" class="custom-select js-auto-update"><option value="auto" selected>Do estilo</option><option value="reboco">Reboco claro</option><option value="pedra">Pedra</option><option value="madeira">Madeira</option><option value="vidro">Vidro</option></select></div></div>
+                </div>
                 <div class="conditional" data-show-when="tipo:vivenda">
                     <div class="form-row">
                         <div class="form-group half"><label for="vivendas-qtd">Quantidade de vivendas</label><input type="number" id="vivendas-qtd" class="custom-input js-auto-update" value="2" min="2" max="8" step="1"></div>
@@ -125,6 +140,8 @@
                         <div class="form-group half"><label for="garagem-portoes">Portões de garagem</label><input type="number" id="garagem-portoes" class="custom-input js-auto-update" value="1" min="1" max="4" step="1"></div>
                         <div class="form-group half"><label for="garagem-porta-lateral">Porta lateral</label><select id="garagem-porta-lateral" class="custom-select js-auto-update"><option value="1" selected>Sim</option><option value="0">Não</option></select></div>
                     </div>
+                    <label for="garagem-telhado">Tipo de telhado da garagem</label>
+                    <select id="garagem-telhado" class="custom-select js-auto-update"><option value="plano">Plano</option><option value="uma_agua" selected>Uma água</option><option value="duas_aguas">Duas águas</option><option value="beiral">Telha com beiral</option><option value="sandwich">Painel sandwich</option></select>
                 </div>
                 <div class="conditional note-box" data-show-when="garagem:subterranea">
                     A garagem subterrânea entra no orçamento, mas não altera a geometria para evitar deformações falsas no terreno.
@@ -155,7 +172,19 @@
             </div>
 
             <div class="panel-section">
-                <div class="section-header"><h3>6. Anexos</h3></div>
+                <div class="section-header"><h3>6. Climatização</h3></div>
+                <label for="climatizacao">Sistema de climatização</label>
+                <select id="climatizacao" class="custom-select js-auto-update">
+                    <option value="nenhuma" selected>Sem climatização</option>
+                    <option value="pre_ac">Pré-instalação AC</option>
+                    <option value="split">Multi-split</option>
+                    <option value="condutas">Ar condicionado por condutas</option>
+                    <option value="completa">Bomba de calor + ventilação</option>
+                </select>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-header"><h3>7. Anexos</h3></div>
                 <label for="anexos">Adicionar anexo</label>
                 <select id="anexos" class="custom-select js-auto-update">
                     <option value="nenhum" selected>Sem anexo</option>
@@ -168,6 +197,10 @@
                     <div class="form-row">
                         <div class="form-group half"><label for="posicao-anexo">Posição</label><select id="posicao-anexo" class="custom-select js-auto-update"><option value="direita" selected>Direita do lote</option><option value="esquerda">Esquerda do lote</option><option value="frente">Frente</option><option value="tras">Traseiras</option></select></div>
                         <div class="form-group half"><label for="portas-anexo">Portas laterais</label><input type="number" id="portas-anexo" class="custom-input js-auto-update" value="1" min="0" max="4" step="1"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half"><label for="anexo-largura">Largura anexo (m)</label><input type="number" id="anexo-largura" class="custom-input js-auto-update" value="0" min="0" max="30" step="0.5"></div>
+                        <div class="form-group half"><label for="anexo-profundidade">Profundidade anexo (m)</label><input type="number" id="anexo-profundidade" class="custom-input js-auto-update" value="0" min="0" max="25" step="0.5"></div>
                     </div>
                     <label for="anexo-telhado">Tipo de telhado do anexo</label>
                     <select id="anexo-telhado" class="custom-select js-auto-update">
@@ -190,7 +223,7 @@
             </div>
 
             <div class="panel-section">
-                <div class="section-header"><h3>7. Piscina</h3></div>
+                <div class="section-header"><h3>8. Piscina</h3></div>
                 <div class="toggle-group"><label class="toggle-switch"><input type="checkbox" id="piscina" class="js-auto-update"><span class="slider"></span></label><span class="toggle-label">Adicionar piscina</span></div>
                 <div class="conditional" data-show-when="piscina:true">
                     <div class="form-row">
@@ -206,6 +239,20 @@
                 </div>
             </div>
 
+
+            <div class="panel-section conditional" data-show-when="modo-exteriores-avancado:1">
+                <div class="section-header"><h3>Dimensões dos extras 3D</h3></div>
+                <div class="form-row"><div class="form-group half"><label for="pergola-largura">Pérgola largura</label><input type="number" id="pergola-largura" class="custom-input js-auto-update" value="4.8" min="2" max="14" step="0.5"></div><div class="form-group half"><label for="pergola-profundidade">Pérgola profundidade</label><input type="number" id="pergola-profundidade" class="custom-input js-auto-update" value="3.3" min="2" max="10" step="0.5"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="pergola-altura">Pérgola altura</label><input type="number" id="pergola-altura" class="custom-input js-auto-update" value="2.45" min="2" max="4" step="0.1"></div><div class="form-group half"><label for="deck-largura">Deck largura</label><input type="number" id="deck-largura" class="custom-input js-auto-update" value="5.2" min="2" max="18" step="0.5"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="deck-profundidade">Deck profundidade</label><input type="number" id="deck-profundidade" class="custom-input js-auto-update" value="3.2" min="2" max="14" step="0.5"></div><div class="form-group half"><label for="churrasco-largura">Zona churrasco largura</label><input type="number" id="churrasco-largura" class="custom-input js-auto-update" value="3.6" min="2.5" max="12" step="0.5"></div></div>
+                <label for="churrasco-profundidade">Zona churrasco profundidade</label><input type="number" id="churrasco-profundidade" class="custom-input js-auto-update" value="2.5" min="2" max="10" step="0.5">
+                <div class="form-row"><div class="form-group half"><label for="varanda-largura">Varanda largura</label><input type="number" id="varanda-largura" class="custom-input js-auto-update" value="3.2" min="1.6" max="10" step="0.25"></div><div class="form-group half"><label for="varanda-profundidade">Varanda profundidade</label><input type="number" id="varanda-profundidade" class="custom-input js-auto-update" value="1.35" min="0.7" max="3.5" step="0.1"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="pavimento-largura">Pavimento largura</label><input type="number" id="pavimento-largura" class="custom-input js-auto-update" value="5" min="1" max="25" step="0.5"></div><div class="form-group half"><label for="pavimento-profundidade">Pavimento profundidade</label><input type="number" id="pavimento-profundidade" class="custom-input js-auto-update" value="3" min="1" max="25" step="0.5"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="caminho-largura">Caminho largura</label><input type="number" id="caminho-largura" class="custom-input js-auto-update" value="1.4" min="0.6" max="5" step="0.1"></div><div class="form-group half"><label for="caminho-comprimento">Caminho comprimento</label><input type="number" id="caminho-comprimento" class="custom-input js-auto-update" value="6" min="1" max="35" step="0.5"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="anexo-extra-largura">Anexo livre largura</label><input type="number" id="anexo-extra-largura" class="custom-input js-auto-update" value="6" min="2.5" max="30" step="0.5"></div><div class="form-group half"><label for="anexo-extra-profundidade">Anexo livre profundidade</label><input type="number" id="anexo-extra-profundidade" class="custom-input js-auto-update" value="4.2" min="2.5" max="25" step="0.5"></div></div>
+                <div class="form-row"><div class="form-group half"><label for="anexo-extra-altura">Anexo livre altura</label><input type="number" id="anexo-extra-altura" class="custom-input js-auto-update" value="2.75" min="2.1" max="4.5" step="0.1"></div><div class="form-group half"><label for="anexo-extra-telhado">Telhado anexo livre</label><select id="anexo-extra-telhado" class="custom-select js-auto-update"><option value="plano">Plano</option><option value="uma_agua" selected>Uma água</option><option value="duas_aguas">Duas águas</option><option value="beiral">Telha com beiral</option><option value="sandwich">Painel sandwich</option></select></div></div>
+            </div>
+            <input type="hidden" id="modo-exteriores-avancado" class="js-auto-update" value="0">
 
             <div class="panel-section active-summary-panel">
                 <div class="section-header"><h3>Resumo do que está colocado</h3></div>
@@ -227,6 +274,7 @@
             <div class="canvas-tools" id="canvas-tools">
                 <button type="button" class="canvas-tool-main" id="btn-ferramentas-3d" title="Adicionar elementos no 3D" onclick="App.alternarFerramentas3D()">✎</button>
                 <div class="canvas-tool-palette" id="ferramentas-3d-palette">
+                    <div class="tool-palette-hint">Scroll = rodar antes de colocar</div>
                     <button type="button" data-tool="arvore">Árvore</button>
                     <button type="button" data-tool="palmeira">Palmeira</button>
                     <button type="button" data-tool="planta">Planta</button>
@@ -235,8 +283,19 @@
                     <button type="button" data-tool="deck">Deck</button>
                     <button type="button" data-tool="pergola">Pérgola</button>
                     <button type="button" data-tool="churrasqueira">Churrasqueira</button>
+                    <button type="button" data-tool="anexo_extra">Anexo livre</button>
+                    <button type="button" data-tool="pavimento">Pavimento</button>
+                    <button type="button" data-tool="caminho">Caminho</button>
+                    <button type="button" data-tool="janela_extra">Janela</button>
+                    <button type="button" data-tool="porta_extra">Porta</button>
+                    <button type="button" data-tool="varanda_extra">Varanda</button>
+                    <button type="button" data-tool="chamine">Chaminé</button>
+                    <button type="button" data-tool="carro">Carro</button>
+                    <button type="button" data-tool="chafariz">Chafariz</button>
                     <button type="button" data-tool="mover_piscina">Mover piscina</button>
                     <button type="button" data-tool="mover_anexo">Mover anexo</button>
+                    <button type="button" data-tool="apagar_extra">Apagar 1 extra</button>
+                    <button type="button" onclick="App.alternarDimensoesExteriores()">Dimensões</button>
                     <button type="button" class="danger" onclick="App.limparManuais()">Limpar extras</button>
                 </div>
             </div>
