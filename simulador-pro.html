@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Motor CAD PRO R.F. Carvalho para simulação de obra, lote, muros, anexos e orçamento estimativo.">
     <title>Motor CAD PRO - R.F. CARVALHO</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2322c55e'/><text x='50' y='67' text-anchor='middle' font-size='55'>🏗️</text></svg>">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="64x64" href="assets/logo/favicon-64.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo/apple-touch-icon.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <link rel="stylesheet" href="CSS/style.css">
@@ -18,7 +20,7 @@
     </div>
 
     <header class="app-header">
-        <a href="index.html" class="logo-container logo-link"><span class="logo-icon">🏗️</span> R.F. CARVALHO <span class="badge">PRO CAD</span></a>
+        <a href="index.html" class="logo-container logo-link"><span class="logo-icon"><img src="assets/logo/rf-carvalho-mark.svg" alt=""></span><span class="app-brand-name">R.F. CARVALHO</span> <span class="badge">PRO CAD</span></a>
         <button type="button" class="mobile-panel-toggle" onclick="App.alternarPainel()">Opções</button>
         <div class="header-actions">
             <button id="btn-dark-mode" class="btn-outline-primary" type="button">TEMA</button>
@@ -230,7 +232,14 @@
                     <input type="hidden" id="anexo-manual" class="js-auto-update" value="0">
                     <input type="hidden" id="anexo-x" class="js-auto-update" value="0">
                     <input type="hidden" id="anexo-z" class="js-auto-update" value="0">
-                    <p class="small-note">Para mover o anexo livremente, use o botão lápis no 3D e selecione “Mover anexo”.</p>
+                    <div class="assist-box">
+                        <strong>Anexo mais fácil:</strong>
+                        <span>Escolha o tipo e, se quiser ajustar manualmente, carregue em “Mover anexo no 3D” e clique no ponto final dentro do lote.</span>
+                    </div>
+                    <div class="mini-action-grid">
+                        <button type="button" class="btn-action" data-tool="mover_anexo">Mover anexo no 3D</button>
+                        <button type="button" class="btn-action" data-tool="anexo_extra">Adicionar outro anexo livre</button>
+                    </div>
                     <div class="conditional" data-show-when="anexos:garagem,oficina">
                         <label for="garagem-anexo-portoes">Portões do anexo</label>
                         <input type="number" id="garagem-anexo-portoes" class="custom-input js-auto-update" value="1" min="1" max="4" step="1">
@@ -251,7 +260,7 @@
                     <input type="hidden" id="piscina-manual" class="js-auto-update" value="0">
                     <input type="hidden" id="piscina-x" class="js-auto-update" value="0">
                     <input type="hidden" id="piscina-z" class="js-auto-update" value="0">
-                    <p class="small-note">Para posicionar livremente, use o botão lápis no 3D e selecione “Mover piscina”.</p>
+                    <p class="small-note">Para posicionar livremente, use a categoria “Mover” nos botões 3D e selecione “Mover piscina”.</p>
                 </div>
             </div>
 
@@ -343,6 +352,12 @@
                 </div>
             </div>
             <div class="hud-card"><span>Área total</span><strong id="hud-area">0 m²</strong><span>Estimativa</span><strong id="hud-preco">0 €</strong></div>
+            <div class="mobile-budget-bar">
+                <div><span>Área</span><strong id="mobile-hud-area">0 m²</strong></div>
+                <div><span>Estimativa</span><strong id="mobile-hud-preco">0 €</strong></div>
+                <button type="button" onclick="App.alternarPainel()">Opções</button>
+                <button type="button" onclick="App.calcularOrcamento()">Relatório</button>
+            </div>
             <div id="dev-console"><div class="console-header"><span>R.F. CARVALHO ENGINE</span><span id="fps-counter">FPS: --</span></div><div id="console-logs"></div></div>
             <div id="modal-sistema" class="modal-backdrop"></div>
             <div id="modal-orcamento" class="modal-backdrop"></div>

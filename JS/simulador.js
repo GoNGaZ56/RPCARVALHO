@@ -1,5 +1,5 @@
 /*
- * R.F. CARVALHO - Simulador Standalone V20
+ * R.F. CARVALHO - Simulador Standalone V21
  * Objetivo desta versão:
  * - Layout simples e responsivo.
  * - Sem alert()/confirm() nativos.
@@ -146,8 +146,8 @@ const App = (function(){
             '2. Ative apenas os elementos que quer simular. As opções avançadas aparecem automaticamente.\n' +
             '3. A estrada fica fora do lote e apenas cria uma entrada curta para o portão/casa.\n' +
             '4. A garagem subterrânea apenas entra na estimativa, sem alterar o terreno visual.\n' +
-            '5. Para adicionar árvore, planta, deck, pérgola, churrasqueira, candeeiro ou pedra, carregue no botão lápis dentro do 3D e clique no lote.\n' +
-            '6. Para mover a piscina livremente, ative a piscina, escolha o lápis no 3D e selecione Mover piscina.\n' +
+            '5. Para adicionar árvore, planta, deck, pérgola, churrasqueira, candeeiro ou pedra, use os botões 3D por categoria e clique no lote.\n' +
+            '6. Para mover a piscina ou o anexo, ative o elemento e use a categoria Mover nos botões 3D.\n' +
             '7. Para relatório, aceite os termos de responsabilidade.',
             [{texto:'OK', tipo:'primary'}]
         );
@@ -839,7 +839,7 @@ const App = (function(){
         const fp = footprintPrincipal(cfg);
         const pos = posicaoCasaNoLote(cfg, lote, fp);
         const needGrow = validarEspacoBasico(cfg, lote, fp);
-        if(needGrow && bootConcluido){ pedirAumentoTerreno(cfg, needGrow); }
+        if(needGrow && bootConcluido){ log('Aviso: o lote atual pode ficar apertado. Ajuste a área se necessário.', 'warn'); }
         if(cfg.tipo === 'vivenda'){
             construirVivendas(cfg, lote, fp, pos.x, pos.z);
         }else{
@@ -1291,14 +1291,14 @@ const App = (function(){
 
         const gRect = rect('Garagem', x, z, w, d);
         if(!insideLotRect(gRect, lote, 1.3)){
-            if(bootConcluido){ mostrarModal('Garagem sem espaço', 'Não existe espaço livre dentro do lote para colocar a garagem colada à casa. Aumente o terreno ou escolha outra posição.', [{texto:'OK', tipo:'primary'}]); }
+            if(bootConcluido){ log('Garagem não colocada: sem espaço livre no lote.', 'warn'); }
             return;
         }
         for(let i=0; i<objetosOcupados.length; i++){
             const obj = objetosOcupados[i];
             if(obj.name && (obj.name.indexOf('Casa') >= 0 || obj.name.indexOf('Vivenda') >= 0)){ continue; }
             if(intersectRect(gRect, obj, .7)){
-                if(bootConcluido){ mostrarModal('Garagem sem espaço', 'A garagem colada iria sobrepor outro elemento. Escolha outra posição.', [{texto:'OK', tipo:'primary'}]); }
+                if(bootConcluido){ log('Garagem não colocada: colisão com outro elemento.', 'warn'); }
                 return;
             }
         }
@@ -1414,7 +1414,7 @@ const App = (function(){
         const anexoRect = rect('Anexo', p.x, p.z, d.w, d.d);
         const livre = cfg.anexoManual ? rectLivreComIgnorados(anexoRect, lote, 2.3, []) : encontrarPosicaoLivre(anexoRect, lote, 2.3);
         if(!livre){
-            if(bootConcluido){ mostrarModal('Anexo sem espaço', 'Não existe espaço livre dentro do lote para colocar o anexo sem ficar por cima da casa, garagem ou piscina.', [{texto:'OK', tipo:'primary'}]); }
+            if(bootConcluido){ log('Anexo automático não colocado: sem espaço livre. Use “Mover anexo no 3D” ou aumente o lote.', 'warn'); }
             return;
         }
         const x = livre.x, z = livre.z;
@@ -1452,7 +1452,7 @@ const App = (function(){
         const alvo = rect('Piscina', base.x, base.z, comp + 2, larg + 2);
         const livre = cfg.piscinaManual ? rectLivreComIgnorados(alvo, lote, 2.3, []) : encontrarPosicaoLivre(alvo, lote, 2.3);
         if(!livre){
-            if(bootConcluido){ mostrarModal('Piscina sem espaço', 'Não existe espaço livre dentro do lote para colocar a piscina sem colidir com casa, garagem, anexo ou outros elementos. Escolha outro ponto ou aumente o terreno.', [{texto:'OK', tipo:'primary'}]); }
+            if(bootConcluido){ log('Piscina não colocada: sem espaço livre no lote.', 'warn'); }
             return;
         }
         const deck = addBox(grupoConstrucao, comp+1.7, .1, larg+1.7, livre.x, .06, livre.z, materiais.betao, 'deck-piscina');
@@ -2396,8 +2396,14 @@ const App = (function(){
         ultimaEstimativa = est.total;
         const areaEl = $('hud-area');
         const precoEl = $('hud-preco');
-        if(areaEl){ areaEl.innerText = fmtM2(areaTotalConstrucao(cfg)); }
-        if(precoEl){ precoEl.innerText = fmtEUR(est.total); }
+        const areaMobileEl = $('mobile-hud-area');
+        const precoMobileEl = $('mobile-hud-preco');
+        const areaTxt = fmtM2(areaTotalConstrucao(cfg));
+        const precoTxt = fmtEUR(est.total);
+        if(areaEl){ areaEl.innerText = areaTxt; }
+        if(precoEl){ precoEl.innerText = precoTxt; }
+        if(areaMobileEl){ areaMobileEl.innerText = areaTxt; }
+        if(precoMobileEl){ precoMobileEl.innerText = precoTxt; }
     }
 
     function calcularOrcamento(){
@@ -2660,7 +2666,7 @@ const App = (function(){
         atualizarGeometria(true);
         const loader = $('loading-screen');
         if(loader){ setTimeout(function(){ loader.style.opacity = '0'; setTimeout(function(){ loader.style.display='none'; }, 260); }, 420); }
-        log('Engine CAD 20.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
+        log('Engine CAD 21.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
         loop();
     }
 
@@ -2680,6 +2686,8 @@ const App = (function(){
         apagarExtraPorIndice: apagarExtraPorIndice,
         alternarPainel: alternarPainel,
         alternarFerramentas3D: alternarFerramentas3D,
-        alternarDimensoesExteriores: alternarDimensoesExteriores
+        alternarDimensoesExteriores: alternarDimensoesExteriores,
+        ativarFerramenta: setFerramentaAtual,
+        definirCategoriaFerramenta: setCategoriaFerramenta
     };
 })();
