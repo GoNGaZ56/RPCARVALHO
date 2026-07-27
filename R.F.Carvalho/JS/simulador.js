@@ -1,5 +1,5 @@
 /*
- * R.F. CARVALHO - Simulador Standalone V19
+ * R.F. CARVALHO - Simulador Standalone V20
  * Objetivo desta versão:
  * - Layout simples e responsivo.
  * - Sem alert()/confirm() nativos.
@@ -41,6 +41,8 @@ const App = (function(){
     let ultimoPontoPreview = null;
     let ultimoPontoTerreno = null;
     let rotacoesFerramenta = {};
+    let offsetColocacao = {x:0, z:0, y:0};
+    let categoriaFerramentaAtual = null;
 
     const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 900;
     const QUALITY = isMobile ? 'mobile' : 'desktop';
@@ -198,6 +200,11 @@ const App = (function(){
             tipo: safeValue('tipo', 'moradia'),
             estiloCasa: safeValue('estilo-casa', 'moderno'),
             formatoCasa: safeValue('formato-casa', 'retangular'),
+            formatoLarguraL: safeNumber('formato-l-largura', 38, 20, 85),
+            formatoProfundidadeL: safeNumber('formato-l-profundidade', 42, 20, 95),
+            formatoLarguraU: safeNumber('formato-u-largura', 28, 18, 55),
+            formatoProfundidadeU: safeNumber('formato-u-profundidade', 48, 22, 95),
+            formatoAberturaU: safeNumber('formato-u-abertura', 40, 18, 70),
             personalizarPisos: safeBool('personalizar-pisos', false),
             paredeFrente: safeValue('parede-frente', 'auto'),
             paredeTras: safeValue('parede-tras', 'auto'),
@@ -569,7 +576,8 @@ const App = (function(){
         holder.addEventListener('pointerdown', onPointerDown, false);
         holder.addEventListener('pointermove', onPointerMove, false);
         holder.addEventListener('pointerleave', limparPreview, false);
-        holder.addEventListener('wheel', onWheelFerramenta, {passive:false});
+        holder.addEventListener('wheel', onWheelFerramenta, {passive:true});
+        window.addEventListener('keydown', onKeyFerramenta, false);
         window.addEventListener('resize', onResize, false);
         return true;
     }
@@ -958,7 +966,7 @@ const App = (function(){
             criarAberturas(cfg, wp, dp, xp, zp, p, pe, tipo);
             roofW = wp; roofD = dp; roofX = xp; roofZ = zp;
             if(cfg.formatoCasa === 'l' && p === 0){
-                const aw = Math.max(3.4, w*.38), ad = Math.max(3.2, d*.38);
+                const aw = Math.max(3.4, w*(cfg.formatoLarguraL/100)), ad = Math.max(3.2, d*(cfg.formatoProfundidadeL/100));
                 const ax = x + wp/2 - aw/2;
                 const az = z - dp/2 - ad/2 + .2;
                 addBox(grupoConstrucao, aw, pe, ad, ax, pe/2, az, materialParede(cfg), 'volume-l');
@@ -966,9 +974,11 @@ const App = (function(){
                 if(pisosCount === 1){ criarTelhado(cfg, aw, ad, ax, az, pe, 'volume-l'); }
             }
             if(cfg.formatoCasa === 'u' && p === 0){
-                const aw = Math.max(3.2, w*.28), ad = Math.max(3.0, d*.48);
-                const ux1 = x-wp/2+aw/2;
-                const ux2 = x+wp/2-aw/2;
+                const aw = Math.max(3.2, w*(cfg.formatoLarguraU/100)), ad = Math.max(3.0, d*(cfg.formatoProfundidadeU/100));
+                const abertura = clamp(cfg.formatoAberturaU/100, .18, .70);
+                const margemU = Math.max(.3, (wp - (aw*2) - (wp*abertura)) / 2);
+                const ux1 = x-wp/2+aw/2+margemU*.25;
+                const ux2 = x+wp/2-aw/2-margemU*.25;
                 const uz = z-dp/2-ad/2+.3;
                 addBox(grupoConstrucao, aw, pe, ad, ux1, pe/2, uz, materialParede(cfg), 'volume-u-esq');
                 addBox(grupoConstrucao, aw, pe, ad, ux2, pe/2, uz, materialParede(cfg), 'volume-u-dir');
@@ -997,14 +1007,18 @@ const App = (function(){
         const backZ = z - d/2 - .035;
         const leftX = x - w/2 - .035;
         const rightX = x + w/2 + .035;
+        const garagemIntegradaPiso = cfg.garagem === 'integrada' && piso === 0;
         if(piso === 0){
-            addPlane(grupoConstrucao, .95, 2.1, x - w*.18, yBase + 1.08, frontZ, 0, materiais.porta, 'porta');
+            const portaX = garagemIntegradaPiso ? x - w*.38 : x - w*.18;
+            addPlane(grupoConstrucao, .95, 2.1, portaX, yBase + 1.08, frontZ, 0, materiais.porta, 'porta');
         }
         const n = w > 14 ? 3 : 2;
         for(let i=0;i<n;i++){
             const px = x - w*.32 + i * (w*.64 / Math.max(1,n-1));
-            if(piso === 0 && Math.abs(px - (x - w*.18)) < 1.6){ continue; }
-            addPlane(grupoConstrucao, 1.05, 1.05, px, yBase + 1.8, frontZ, 0, materiais.janela, 'janela');
+            if(piso === 0 && Math.abs(px - (garagemIntegradaPiso ? x - w*.38 : x - w*.18)) < 1.6){ continue; }
+            if(!garagemIntegradaPiso){
+                addPlane(grupoConstrucao, 1.05, 1.05, px, yBase + 1.8, frontZ, 0, materiais.janela, 'janela');
+            }
             addPlane(grupoConstrucao, 1.05, 1.05, px, yBase + 1.8, backZ, Math.PI, materiais.janela, 'janela');
         }
         addPlane(grupoConstrucao, 1.0, 1.0, leftX, yBase + 1.7, z, -Math.PI/2, materiais.janela, 'janela');
@@ -1013,13 +1027,14 @@ const App = (function(){
 
     function criarPortoesNaFachada(cfg, x, z, topY, w, face){
         const portas = clamp(cfg.garagemPortoes || 1, 1, 4);
-        const larguraPortao = Math.min(2.8, (w - 2) / portas - .3);
-        const total = portas * larguraPortao + (portas - 1) * .45;
-        const start = x - total/2 + larguraPortao/2;
+        const larguraPortao = Math.min(2.55, Math.max(1.65, (w * .42) / portas - .22));
+        const total = portas * larguraPortao + (portas - 1) * .38;
+        const centroGaragem = x + w*.22;
+        const start = centroGaragem - total/2 + larguraPortao/2;
         for(let i=0;i<portas;i++){
-            addPlane(grupoConstrucao, larguraPortao, 2.15, start + i*(larguraPortao+.45), 1.12, z, 0, materiais.portao, 'portao-garagem');
+            addPlane(grupoConstrucao, larguraPortao, 2.15, start + i*(larguraPortao+.38), 1.12, z, 0, materiais.portao, 'portao-garagem');
         }
-        if(cfg.garagemPortaLateral){ addPlane(grupoConstrucao, .88, 2.0, x + w/2 - .75, 1.05, z, 0, materiais.porta, 'porta-lateral-garagem'); }
+        if(cfg.garagemPortaLateral){ addPlane(grupoConstrucao, .88, 2.0, x - w*.38, 1.05, z, 0, materiais.porta, 'porta-lateral-garagem'); }
     }
 
     function inclinacaoValor(cfg){
@@ -1762,7 +1777,7 @@ const App = (function(){
                 }
             }
             if(colide){ continue; }
-            const y = 0;
+            const y = isFinite(m.yOffset) ? Number(m.yOffset) : 0;
             const startChild = grupoManuais.children.length;
             if(m.tipo === 'arvore'){ criarArvore(grupoManuais, m.x, y, m.z, 'arvore', m.scale || 1); }
             if(m.tipo === 'palmeira'){ criarArvore(grupoManuais, m.x, y, m.z, 'palmeira', m.scale || 1); }
@@ -1828,13 +1843,63 @@ const App = (function(){
     }
 
     function onWheelFerramenta(ev){
+        // O scroll fica livre para o zoom normal do OrbitControls.
+        // A rotação dos objetos passou para a tecla R.
+        return;
+    }
+
+    function ferramentaPermiteOffsetVertical(tool){
+        return ['deck','pavimento','caminho','pergola','churrasqueira','anexo_extra','carro','chafariz','arvore','palmeira','planta','pedra','rocha','candeeiro'].indexOf(tool) >= 0;
+    }
+
+    function aplicarOffsetPonto(p){
+        if(!p){ return null; }
+        return {x:p.x + offsetColocacao.x, y:p.y || 0, z:p.z + offsetColocacao.z};
+    }
+
+    function rodarFerramentaAtual(sentido, fino){
         if(!ferramentaAtual || !ferramentaPermiteRotacao(ferramentaAtual)){ return; }
-        ev.preventDefault();
-        ev.stopPropagation();
-        const passo = deg(ev.shiftKey ? 5 : 15);
+        const passo = deg(fino ? 5 : 15) * (sentido || 1);
         const atual = rotacaoAtualFerramenta(ferramentaAtual);
-        rotacoesFerramenta[ferramentaAtual] = atual + (ev.deltaY > 0 ? passo : -passo);
+        rotacoesFerramenta[ferramentaAtual] = atual + passo;
         atualizarPreviewPorUltimoPonto();
+    }
+
+    function moverCursorFerramenta(dx, dz){
+        if(!ferramentaAtual){ return; }
+        offsetColocacao.x += dx;
+        offsetColocacao.z += dz;
+        atualizarPreviewPorUltimoPonto();
+    }
+
+    function ajustarAlturaFerramenta(delta){
+        if(!ferramentaAtual || !ferramentaPermiteOffsetVertical(ferramentaAtual)){ return; }
+        offsetColocacao.y = clamp(offsetColocacao.y + delta, -2.5, 8);
+        atualizarPreviewPorUltimoPonto();
+    }
+
+    function onKeyFerramenta(ev){
+        if(!ferramentaAtual){ return; }
+        const tag = (ev.target && ev.target.tagName ? ev.target.tagName : '').toLowerCase();
+        if(tag === 'input' || tag === 'select' || tag === 'textarea'){ return; }
+        const k = ev.key.toLowerCase();
+        const passo = ev.altKey ? .25 : (ev.shiftKey ? .5 : 1.0);
+        if(k === 'r'){
+            ev.preventDefault();
+            rodarFerramentaAtual(ev.shiftKey ? -1 : 1, ev.altKey);
+            return;
+        }
+        if(k === 'w' || k === 'arrowup'){ ev.preventDefault(); moverCursorFerramenta(0, -passo); return; }
+        if(k === 's' || k === 'arrowdown'){ ev.preventDefault(); moverCursorFerramenta(0, passo); return; }
+        if(k === 'a' || k === 'arrowleft'){ ev.preventDefault(); moverCursorFerramenta(-passo, 0); return; }
+        if(k === 'd' || k === 'arrowright'){ ev.preventDefault(); moverCursorFerramenta(passo, 0); return; }
+        if(k === 'shift'){ ev.preventDefault(); ajustarAlturaFerramenta(.25); return; }
+        if(k === 'control'){ ev.preventDefault(); ajustarAlturaFerramenta(-.25); return; }
+        if(k === 'escape'){
+            ev.preventDefault();
+            setFerramentaAtual(null);
+            return;
+        }
     }
 
     function pontoDentroLote(x,z,lote,margin){
@@ -1858,9 +1923,19 @@ const App = (function(){
 
     function setFerramentaAtual(tool){
         ferramentaAtual = ferramentaAtual === tool ? null : tool;
+        offsetColocacao = {x:0, z:0, y:0};
         qsa('[data-tool]').forEach(function(b){ b.classList.toggle('ativo', b.getAttribute('data-tool') === ferramentaAtual); });
         const main = $('btn-ferramentas-3d');
         if(main){ main.classList.toggle('ativo', !!ferramentaAtual); }
+        limparPreview();
+    }
+
+    function setCategoriaFerramenta(cat){
+        categoriaFerramentaAtual = categoriaFerramentaAtual === cat ? null : cat;
+        const box = $('canvas-tools');
+        if(box){ box.classList.toggle('aberto', !!categoriaFerramentaAtual); }
+        qsa('[data-tool-category]').forEach(function(b){ b.classList.toggle('ativo', b.getAttribute('data-tool-category') === categoriaFerramentaAtual); });
+        qsa('[data-tool-panel]').forEach(function(p){ p.classList.toggle('ativo', p.getAttribute('data-tool-panel') === categoriaFerramentaAtual); });
     }
 
 
@@ -1991,10 +2066,32 @@ const App = (function(){
         return {x:alvo.cx,z:alvo.cz,y:y};
     }
 
+    function snapPavimentoAoExistente(x,z,dim,rotY){
+        if(!dim || Math.abs(Math.sin(rotY || 0)) > .2){ return null; }
+        const w = dim.w || 5;
+        const d = dim.d || 3;
+        let melhor = null;
+        const limite = .85;
+        manuais.forEach(function(m){
+            if(!m || (m.tipo !== 'pavimento' && m.tipo !== 'caminho' && m.tipo !== 'deck')){ return; }
+            const r = manualRect(m);
+            const candidatos = [
+                {x:r.maxX + w/2, z:clamp(z, r.minZ + d/2, r.maxZ - d/2), dist:Math.abs((x - w/2) - r.maxX)},
+                {x:r.minX - w/2, z:clamp(z, r.minZ + d/2, r.maxZ - d/2), dist:Math.abs((x + w/2) - r.minX)},
+                {x:clamp(x, r.minX + w/2, r.maxX - w/2), z:r.maxZ + d/2, dist:Math.abs((z - d/2) - r.maxZ)},
+                {x:clamp(x, r.minX + w/2, r.maxX - w/2), z:r.minZ - d/2, dist:Math.abs((z + d/2) - r.minZ)}
+            ];
+            candidatos.forEach(function(c){
+                if(c.dist <= limite && (!melhor || c.dist < melhor.dist)){ melhor = c; }
+            });
+        });
+        return melhor;
+    }
+
     function avaliarColocacao(x,z,tool,cfg,lote){
         const dim = manualDim(tool, null);
         let rotY = rotacaoAtualFerramenta(tool);
-        let item = {tipo:tool, x:x, z:z, scale:1, rotY:rotY};
+        let item = {tipo:tool, x:x, z:z, scale:1, rotY:rotY, yOffset: offsetColocacao.y || 0};
         let r = rectManualRot('Manual ' + tool, x, z, dim.w || 1, dim.d || 1, rotY);
         let ignorar = [];
         if(tool === 'pergola'){
@@ -2010,6 +2107,10 @@ const App = (function(){
         }
         if(tool === 'deck' || tool === 'pavimento' || tool === 'caminho'){
             item.w = dim.w; item.d = dim.d;
+            if(tool === 'pavimento'){
+                const snapPav = snapPavimentoAoExistente(item.x, item.z, dim, item.rotY);
+                if(snapPav){ item.x = snapPav.x; item.z = snapPav.z; }
+            }
             r = rectManualRot('Manual ' + tool, item.x, item.z, dim.w, dim.d, item.rotY);
         }
         if(tool === 'churrasqueira'){
@@ -2069,7 +2170,7 @@ const App = (function(){
         const r = avaliacao.rect;
         const mat = avaliacao.ok ? materiais.previewOk : materiais.previewBad;
         const h = avaliacao.wall ? 1.65 : (avaliacao.roof ? .35 : .12);
-        const y = avaliacao.wall ? 1.45 : (avaliacao.roof ? (avaliacao.item.y || 3) : .18);
+        const y = (avaliacao.wall ? 1.45 : (avaliacao.roof ? (avaliacao.item.y || 3) : .18)) + ((avaliacao.item && avaliacao.item.yOffset) ? Number(avaliacao.item.yOffset) : 0);
         const baseW = avaliacao.item && isFinite(avaliacao.item.w) ? Number(avaliacao.item.w) : r.w;
         const baseD = avaliacao.item && isFinite(avaliacao.item.d) ? Number(avaliacao.item.d) : r.d;
         const mesh = new THREE.Mesh(new THREE.BoxGeometry(Math.max(.3,baseW), h, Math.max(.3,baseD)), mat);
@@ -2089,9 +2190,10 @@ const App = (function(){
             }else{ limparPreview(); }
             return;
         }
-        const p = obterPontoTerrenoDoEvento(ev);
+        let p = obterPontoTerrenoDoEvento(ev);
         if(!p){ limparPreview(); return; }
-        ultimoPontoTerreno = {x:p.x, z:p.z};
+        p = aplicarOffsetPonto(p);
+        ultimoPontoTerreno = {x:p.x - offsetColocacao.x, z:p.z - offsetColocacao.z};
         const cfg = ultimoCfg || lerCfg();
         const lote = loteDimensoes(cfg);
         let avaliacao;
@@ -2134,8 +2236,9 @@ const App = (function(){
             apagarExtraPorIndice(hit.index);
             return;
         }
-        const p = obterPontoTerrenoDoEvento(ev);
+        let p = obterPontoTerrenoDoEvento(ev);
         if(!p){ return; }
+        p = aplicarOffsetPonto(p);
         const cfg = ultimoCfg || lerCfg();
         const lote = loteDimensoes(cfg);
 
@@ -2371,7 +2474,7 @@ const App = (function(){
         const mapa = {
             areaTerreno:'area-terreno', formatoTerreno:'formato-terreno', posicaoCasa:'posicao-casa', entradaLote:'entrada-lote',
             tipoMuro:'tipo-muro', tracadoMuro:'tracado-muro', areaMuro:'area-muro', tipoPlanta:'tipo-planta', densidadeArvores:'densidade-arvores',
-            estiloCasa:'estilo-casa', formatoCasa:'formato-casa', personalizarPisos:'personalizar-pisos', paredeFrente:'parede-frente', paredeTras:'parede-tras', paredeEsq:'parede-esq', paredeDir:'parede-dir',
+            estiloCasa:'estilo-casa', formatoCasa:'formato-casa', formatoLarguraL:'formato-l-largura', formatoProfundidadeL:'formato-l-profundidade', formatoLarguraU:'formato-u-largura', formatoProfundidadeU:'formato-u-profundidade', formatoAberturaU:'formato-u-abertura', personalizarPisos:'personalizar-pisos', paredeFrente:'parede-frente', paredeTras:'parede-tras', paredeEsq:'parede-esq', paredeDir:'parede-dir',
             piso1Largura:'piso1-largura', piso1Profundidade:'piso1-profundidade', piso2Largura:'piso2-largura', piso2Profundidade:'piso2-profundidade', piso3Largura:'piso3-largura', piso3Profundidade:'piso3-profundidade',
             vivendasQtd:'vivendas-qtd', vivendasDisposicao:'vivendas-disposicao', garagemPortoes:'garagem-portoes',
             garagemPortaLateral:'garagem-porta-lateral', garagemTelhado:'garagem-telhado', orientacaoTelhado:'orientacao-telhado', inclinacaoTelhado:'inclinacao-telhado',
@@ -2479,6 +2582,11 @@ const App = (function(){
                 setFerramentaAtual(btn.getAttribute('data-tool'));
             });
         });
+        qsa('[data-tool-category]').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                setCategoriaFerramenta(btn.getAttribute('data-tool-category'));
+            });
+        });
     }
 
     function initAutoUpdate(){
@@ -2501,7 +2609,9 @@ const App = (function(){
 
     function alternarFerramentas3D(){
         const box = $('canvas-tools');
-        if(box){ box.classList.toggle('aberto'); }
+        if(!box){ return; }
+        box.classList.toggle('aberto');
+        if(box.classList.contains('aberto') && !categoriaFerramentaAtual){ setCategoriaFerramenta('chao'); }
     }
 
     function alternarDimensoesExteriores(){
@@ -2512,6 +2622,29 @@ const App = (function(){
         }
         const painel = document.querySelector('[data-show-when="modo-exteriores-avancado:1"]');
         if(painel && el && el.value === '1'){ painel.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    }
+
+    function mostrarControlos(){
+        mostrarModal(
+            'Controlos 3D',
+            'Câmara:\n' +
+            '• Scroll: zoom\n' +
+            '• Botão esquerdo: rodar câmara\n' +
+            '• Botão direito: deslocar câmara\n\n' +
+            'Colocação de objetos:\n' +
+            '• R: rodar o objeto selecionado\n' +
+            '• Shift + R: rodar no sentido contrário\n' +
+            '• Alt + R: rotação fina\n' +
+            '• W/A/S/D ou setas: ajustar a posição antes de colocar\n' +
+            '• Shift: subir ligeiramente o objeto\n' +
+            '• Ctrl: descer ligeiramente o objeto\n' +
+            '• Verde: pode colocar\n' +
+            '• Vermelho: existe colisão ou está fora do lote\n' +
+            '• Escape: cancelar ferramenta ativa\n\n' +
+            'Pavimento:\n' +
+            '• Quando aproxima uma peça de pavimento a outra, ela tenta colar automaticamente à peça existente.',
+            [{texto:'OK', tipo:'primary'}]
+        );
     }
 
     function arrancar(){
@@ -2527,7 +2660,7 @@ const App = (function(){
         atualizarGeometria(true);
         const loader = $('loading-screen');
         if(loader){ setTimeout(function(){ loader.style.opacity = '0'; setTimeout(function(){ loader.style.display='none'; }, 260); }, 420); }
-        log('Engine CAD 18.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
+        log('Engine CAD 20.0 pronto. Qualidade: ' + QUALITY + '.', 'sys');
         loop();
     }
 
@@ -2538,6 +2671,7 @@ const App = (function(){
         calcularOrcamento: calcularOrcamento,
         mostrarAjuda: mostrarAjuda,
         mostrarTermos: mostrarTermos,
+        mostrarControlos: mostrarControlos,
         guardarProjeto: guardarProjeto,
         exportarXML: exportarXML,
         importarXML: importarXML,

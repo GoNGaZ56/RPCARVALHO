@@ -64,3 +64,112 @@ body[data-mode].dark-theme{background:#06140b}
     border-radius:10px;
     background:rgba(9,45,26,.42);
 }
+
+/* ========================================================================== */
+/* V20 - Ferramentas 3D por categorias + ajuda/controlos                      */
+/* ========================================================================== */
+.help-control-btn{
+    position:absolute;
+    top:18px;
+    left:18px;
+    z-index:31;
+    width:42px;
+    height:42px;
+    border-radius:999px;
+    border:1px solid rgba(187,247,208,.28);
+    background:rgba(6,20,11,.88);
+    color:#86efac;
+    font-weight:1000;
+    font-size:20px;
+    cursor:pointer;
+    box-shadow:0 14px 34px rgba(0,0,0,.28);
+    backdrop-filter:blur(12px);
+}
+.help-control-btn:hover{background:rgba(34,197,94,.18);border-color:#22c55e;color:#eafff0}
+
+.canvas-tools.side-tools{
+    position:absolute;
+    left:18px;
+    top:70px;
+    z-index:30;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    pointer-events:none;
+}
+.side-tool-rail{
+    display:grid;
+    gap:8px;
+    padding:8px;
+    border-radius:20px;
+    background:rgba(6,20,11,.82);
+    border:1px solid rgba(187,247,208,.18);
+    box-shadow:0 18px 60px rgba(0,0,0,.30);
+    backdrop-filter:blur(14px);
+    pointer-events:auto;
+}
+.side-tool-rail button{
+    width:58px;
+    min-height:54px;
+    border-radius:16px;
+    border:1px solid rgba(187,247,208,.16);
+    background:rgba(255,255,255,.045);
+    color:#dfffea;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    cursor:pointer;
+    font-weight:1000;
+    font-size:18px;
+}
+.side-tool-rail button span{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:#a7c4af}
+.side-tool-rail button:hover,.side-tool-rail button.ativo{border-color:#22c55e;background:rgba(34,197,94,.16);color:#86efac}
+.side-tool-rail button.ativo span{color:#eafff0}
+
+.side-tools .canvas-tool-palette{
+    display:none;
+    width:min(330px,calc(100vw - 104px));
+    max-height:min(76vh,660px);
+    overflow:auto;
+    grid-template-columns:1fr;
+    gap:8px;
+    padding:10px;
+    border-radius:20px;
+    background:rgba(6,20,11,.90);
+    border:1px solid rgba(187,247,208,.18);
+    backdrop-filter:blur(14px);
+    box-shadow:0 20px 70px rgba(0,0,0,.36);
+    pointer-events:auto;
+}
+.canvas-tools.side-tools.aberto .canvas-tool-palette{display:grid}
+.tool-panel{display:none;grid-template-columns:1fr 1fr;gap:8px}
+.tool-panel.ativo{display:grid}
+.tool-panel button,.side-tools .canvas-tool-palette button{
+    min-height:42px;
+    border-radius:13px;
+    border:1px solid rgba(187,247,208,.14);
+    background:rgba(255,255,255,.05);
+    color:#eafff0;
+    font-weight:900;
+    cursor:pointer;
+    padding:0 10px;
+}
+.tool-panel button:hover,.tool-panel button.ativo,.side-tools .canvas-tool-palette button:hover,.side-tools .canvas-tool-palette button.ativo{
+    border-color:#22c55e;
+    background:rgba(34,197,94,.16);
+    color:#86efac;
+}
+.tool-panel button.danger{grid-column:1 / -1;color:#ffabab;border-color:rgba(220,38,38,.4)}
+.side-tools .tool-palette-hint{grid-column:1 / -1;margin-bottom:2px}
+
+@media (max-width: 980px){
+    .help-control-btn{top:12px;left:12px;width:40px;height:40px;font-size:18px}
+    .canvas-tools.side-tools{left:12px;top:60px}
+    .side-tool-rail{gap:6px;padding:6px;border-radius:17px}
+    .side-tool-rail button{width:48px;min-height:46px;border-radius:14px;font-size:16px}
+    .side-tool-rail button span{display:none}
+    .side-tools .canvas-tool-palette{width:min(290px,calc(100vw - 82px));max-height:64vh}
+    .tool-panel{grid-template-columns:1fr}
+}

@@ -100,6 +100,22 @@
                     <div class="form-group half"><label for="formato-casa">Formato da casa</label><select id="formato-casa" class="custom-select js-auto-update"><option value="retangular" selected>Retangular</option><option value="l">Em L</option><option value="u">Em U</option><option value="compacta">Compacta</option></select></div>
                     <div class="form-group half"><label for="personalizar-pisos">Personalizar pisos</label><select id="personalizar-pisos" class="custom-select js-auto-update"><option value="0" selected>Não</option><option value="1">Sim</option></select></div>
                 </div>
+                <div class="conditional" data-show-when="formato-casa:l">
+                    <div class="note-box">Dimensões da zona adicional da casa em L.</div>
+                    <div class="form-row">
+                        <div class="form-group half"><label for="formato-l-largura">Largura da asa L (%)</label><input type="number" id="formato-l-largura" class="custom-input js-auto-update" value="38" min="20" max="85" step="1"></div>
+                        <div class="form-group half"><label for="formato-l-profundidade">Profundidade da asa L (%)</label><input type="number" id="formato-l-profundidade" class="custom-input js-auto-update" value="42" min="20" max="95" step="1"></div>
+                    </div>
+                </div>
+                <div class="conditional" data-show-when="formato-casa:u">
+                    <div class="note-box">Dimensões das laterais da casa em U.</div>
+                    <div class="form-row">
+                        <div class="form-group half"><label for="formato-u-largura">Largura das laterais U (%)</label><input type="number" id="formato-u-largura" class="custom-input js-auto-update" value="28" min="18" max="55" step="1"></div>
+                        <div class="form-group half"><label for="formato-u-profundidade">Profundidade das laterais U (%)</label><input type="number" id="formato-u-profundidade" class="custom-input js-auto-update" value="48" min="22" max="95" step="1"></div>
+                    </div>
+                    <label for="formato-u-abertura">Abertura central do U (%)</label>
+                    <input type="number" id="formato-u-abertura" class="custom-input js-auto-update" value="40" min="18" max="70" step="1">
+                </div>
                 <div class="conditional" data-show-when="personalizar-pisos:1">
                     <div class="note-box">Ajuste a largura/profundidade de cada piso. Os valores são percentagens da área base.</div>
                     <div class="form-row"><div class="form-group half"><label for="piso1-largura">Piso 1 largura (%)</label><input type="number" id="piso1-largura" class="custom-input js-auto-update" value="100" min="55" max="130" step="5"></div><div class="form-group half"><label for="piso1-profundidade">Piso 1 profundidade (%)</label><input type="number" id="piso1-profundidade" class="custom-input js-auto-update" value="100" min="55" max="130" step="5"></div></div>
@@ -271,32 +287,59 @@
 
         <section class="viewport-container">
             <div id="canvas-container"></div>
-            <div class="canvas-tools" id="canvas-tools">
-                <button type="button" class="canvas-tool-main" id="btn-ferramentas-3d" title="Adicionar elementos no 3D" onclick="App.alternarFerramentas3D()">✎</button>
+            <button type="button" class="help-control-btn" title="Controlos 3D" onclick="App.mostrarControlos()">?</button>
+            <div class="canvas-tools side-tools" id="canvas-tools">
+                <div class="side-tool-rail" aria-label="Ferramentas 3D por categoria">
+                    <button type="button" data-tool-category="chao" title="Chão, pavimento e caminhos">▦<span>Chão</span></button>
+                    <button type="button" data-tool-category="construcao" title="Construções e anexos">▣<span>Construção</span></button>
+                    <button type="button" data-tool-category="natureza" title="Árvores, plantas e pedras">♣<span>Natureza</span></button>
+                    <button type="button" data-tool-category="decoracao" title="Decoração exterior">◆<span>Decoração</span></button>
+                    <button type="button" data-tool-category="mover" title="Mover elementos">↔<span>Mover</span></button>
+                    <button type="button" data-tool-category="eliminar" title="Eliminar elementos">×<span>Eliminar</span></button>
+                </div>
                 <div class="canvas-tool-palette" id="ferramentas-3d-palette">
-                    <div class="tool-palette-hint">Scroll = rodar antes de colocar</div>
-                    <button type="button" data-tool="arvore">Árvore</button>
-                    <button type="button" data-tool="palmeira">Palmeira</button>
-                    <button type="button" data-tool="planta">Planta</button>
-                    <button type="button" data-tool="pedra">Pedra</button>
-                    <button type="button" data-tool="candeeiro">Candeeiro</button>
-                    <button type="button" data-tool="deck">Deck</button>
-                    <button type="button" data-tool="pergola">Pérgola</button>
-                    <button type="button" data-tool="churrasqueira">Churrasqueira</button>
-                    <button type="button" data-tool="anexo_extra">Anexo livre</button>
-                    <button type="button" data-tool="pavimento">Pavimento</button>
-                    <button type="button" data-tool="caminho">Caminho</button>
-                    <button type="button" data-tool="janela_extra">Janela</button>
-                    <button type="button" data-tool="porta_extra">Porta</button>
-                    <button type="button" data-tool="varanda_extra">Varanda</button>
-                    <button type="button" data-tool="chamine">Chaminé</button>
-                    <button type="button" data-tool="carro">Carro</button>
-                    <button type="button" data-tool="chafariz">Chafariz</button>
-                    <button type="button" data-tool="mover_piscina">Mover piscina</button>
-                    <button type="button" data-tool="mover_anexo">Mover anexo</button>
-                    <button type="button" data-tool="apagar_extra">Apagar 1 extra</button>
-                    <button type="button" onclick="App.alternarDimensoesExteriores()">Dimensões</button>
-                    <button type="button" class="danger" onclick="App.limparManuais()">Limpar extras</button>
+                    <div class="tool-palette-hint">R = rodar | WASD/setas = ajustar posição | Shift = subir | Ctrl = descer | Verde = OK | Vermelho = colisão</div>
+
+                    <div class="tool-panel" data-tool-panel="chao">
+                        <button type="button" data-tool="pavimento">Pavimento</button>
+                        <button type="button" data-tool="caminho">Caminho</button>
+                        <button type="button" data-tool="deck">Deck</button>
+                        <button type="button" onclick="App.alternarDimensoesExteriores()">Dimensões</button>
+                    </div>
+
+                    <div class="tool-panel" data-tool-panel="construcao">
+                        <button type="button" data-tool="anexo_extra">Anexo livre</button>
+                        <button type="button" data-tool="pergola">Pérgola</button>
+                        <button type="button" data-tool="churrasqueira">Churrasqueira</button>
+                        <button type="button" data-tool="janela_extra">Janela</button>
+                        <button type="button" data-tool="porta_extra">Porta</button>
+                        <button type="button" data-tool="varanda_extra">Varanda</button>
+                        <button type="button" data-tool="chamine">Chaminé</button>
+                        <button type="button" onclick="App.alternarDimensoesExteriores()">Dimensões</button>
+                    </div>
+
+                    <div class="tool-panel" data-tool-panel="natureza">
+                        <button type="button" data-tool="arvore">Árvore</button>
+                        <button type="button" data-tool="palmeira">Palmeira</button>
+                        <button type="button" data-tool="planta">Planta</button>
+                        <button type="button" data-tool="pedra">Pedra</button>
+                    </div>
+
+                    <div class="tool-panel" data-tool-panel="decoracao">
+                        <button type="button" data-tool="candeeiro">Candeeiro</button>
+                        <button type="button" data-tool="carro">Carro</button>
+                        <button type="button" data-tool="chafariz">Chafariz</button>
+                    </div>
+
+                    <div class="tool-panel" data-tool-panel="mover">
+                        <button type="button" data-tool="mover_piscina">Mover piscina</button>
+                        <button type="button" data-tool="mover_anexo">Mover anexo</button>
+                    </div>
+
+                    <div class="tool-panel" data-tool-panel="eliminar">
+                        <button type="button" data-tool="apagar_extra">Apagar 1 extra</button>
+                        <button type="button" class="danger" onclick="App.limparManuais()">Limpar extras</button>
+                    </div>
                 </div>
             </div>
             <div class="hud-card"><span>Área total</span><strong id="hud-area">0 m²</strong><span>Estimativa</span><strong id="hud-preco">0 €</strong></div>
